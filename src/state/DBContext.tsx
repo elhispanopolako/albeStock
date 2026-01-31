@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { type DB, type MovementType, type Producer, type ProductType, loadDB, saveDB } from "./db";
 import { applyMovement, ensureCurrentMonthSnapshot, createMovement } from "./logic";
-import { addProduct as addProductLogic } from "./products";
+import { addProduct as addProductLogic, updateProduct as updateProductLogic } from "./products";
 
 
 type DBContextValue = {
@@ -16,6 +16,14 @@ type DBContextValue = {
         productType: ProductType;
         size?: string;
         stock: number;
+        minLevel: number;
+    }) => void;
+    editProduct: (args: {
+        id: string;
+        producer: Producer;
+        name: string;
+        productType: ProductType;
+        size?: string;
         minLevel: number;
     }) => void;
 
@@ -56,10 +64,13 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         );
     };
     const addProduct = (args: { producer: Producer; name: string; productType: ProductType; size?: string; stock: number; minLevel: number }) => {
-        setDb((prev) => addProductLogic(prev, args, user));
+        setDb((prev) => addProductLogic(prev, args));
+    };
+    const editProduct = (args: { id: string; producer: Producer; name: string; productType: ProductType; size?: string; minLevel: number }) => {
+        setDb((prev) => updateProductLogic(prev, args.id, args));
     };
 
-    const value = useMemo(() => ({ db, user, setUser, move, addProduct }), [db, user]);
+    const value = useMemo(() => ({ db, user, setUser, move, addProduct, editProduct }), [db, user]);
 
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
