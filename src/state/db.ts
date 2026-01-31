@@ -15,7 +15,9 @@ export type ProductType =
     | "mydło"
     | "sól"
     | "inne";
-
+// History
+export type PeriodFilter = "CURRENT" | "PREVIOUS" | "ALL";
+export type TypeFilter = MovementType | "ALL"
 export type Product = {
     id: string;
     name: string;
@@ -69,6 +71,15 @@ export function monthKey(d = new Date()) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     return `${y}-${m}`;
+}
+export function prevMonthKey(ym: string) {
+    // ym = "YYYY-MM"
+    const y = Number(ym.slice(0, 4));
+    const m = Number(ym.slice(5, 7));
+    const d = new Date(y, m - 2, 1); // m-2 bo Date month jest 0-index
+    const yy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    return `${yy}-${mm}`;
 }
 
 export function displayName(p: Product) {

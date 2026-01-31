@@ -88,10 +88,13 @@ export default function Products() {
 
                 <button
                     onClick={() => setAddOpen(true)}
-                    style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #111", background: "#111", color: "white", fontWeight: 800 }}
+                    style={btnDark}
                 >
                     Dodaj produkt
                 </button>
+                <div style={{ marginLeft: "auto", color: "#666", fontSize: 12, alignSelf: "center" }}>
+                    Ilość: <b>{filtered.length}</b>
+                </div>
             </div>
 
             <div style={{ overflowX: "auto" }}>
@@ -236,8 +239,8 @@ const td: React.CSSProperties = { borderBottom: "1px solid #f2f2f2", padding: "8
 const btnDark: React.CSSProperties = {
     padding: "8px 10px",
     borderRadius: 10,
-    border: "1px solid #111",
-    background: "#111",
+    border: "1px solid #3b82f6",
+    background: "#3b82f6",
     color: "white",
     fontWeight: 800,
     cursor: "pointer",
