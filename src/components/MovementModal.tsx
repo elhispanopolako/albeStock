@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { type MovementType, type Product, displayName, PODologists } from "../state/db";
+import { type MovementType, type Product, displayName } from "../state/db";
 import { todayYMD, isInCurrentMonth, startOfMonthYMD } from "../state/logic";
-
+import { useSupaDB } from "../state/SupabaseDBContext";
 type Props = {
     open: boolean;
     onClose: () => void;
@@ -12,6 +12,7 @@ type Props = {
 };
 
 export default function MovementModal({ open, onClose, products, defaultProductId, mode, onSubmit }: Props) {
+    const { podologists } = useSupaDB();
     const [productId, setProductId] = useState(defaultProductId ?? products[0]?.id ?? "");
     const [type, setType] = useState<MovementType>("SALE");
     const [qty, setQty] = useState<number>(1);
@@ -112,9 +113,9 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                             <span style={label}>Podolog</span>
                             <select value={podologist} onChange={(e) => setPodologist(e.target.value)} style={input}>
                                 <option value="">Wybierz podologa</option>
-                                {PODologists.map((n) => (
-                                    <option key={n} value={n}>
-                                        {n}
+                                {podologists.map((p) => (
+                                    <option key={p.id} value={p.name}>
+                                        {p.name}
                                     </option>
                                 ))}
                             </select>

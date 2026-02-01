@@ -27,9 +27,9 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
         if (!open || !product) return;
         setProducer(product.producer);
         setName(product.name);
-        setProductType(product.productType);
+        setProductType(product.product_type);
         setSize(product.size ?? "");
-        setMinLevel(product.minLevel);
+        setMinLevel(product.min_level);
         setError(null);
     }, [open, product]);
 

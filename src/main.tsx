@@ -3,14 +3,14 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-import { DBProvider } from "./state/DBContext";
+import { SupabaseDBProvider } from "./state/SupabaseDBContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <DBProvider>
+      <SupabaseDBProvider>
         <App />
-      </DBProvider>
+      </SupabaseDBProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

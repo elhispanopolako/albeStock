@@ -1,5 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { supabase } from "./supabaseClient";
+import Login from "./pages/Login";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
@@ -8,6 +10,15 @@ import History from "./pages/History";
 const SIDEBAR_KEY = "mvp_sidebar_collapsed";
 
 export default function App() {
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       const raw = localStorage.getItem(SIDEBAR_KEY);
@@ -21,6 +32,9 @@ export default function App() {
     localStorage.setItem(SIDEBAR_KEY, JSON.stringify(collapsed));
   }, [collapsed]);
 
+  if (!session) return <Login />;
+
+
   return (
     <div style={s.shell}>
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
@@ -28,6 +42,12 @@ export default function App() {
       <main style={s.main}>
         <header style={s.header}>
           <div style={{ fontWeight: 900 }}>Magazyn podologiczny</div>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white", fontWeight: 800 }}
+          >
+            Wyloguj
+          </button>
         </header>
 
         <div style={s.content}>

@@ -1,46 +1,75 @@
-import { useMemo, useState } from "react";
-import { useDB } from "../state/DBContext";
-import { displayName, PODologists } from "../state/db";
-import { monthKey, prevMonthKey, type PeriodFilter, type TypeFilter } from "../state/db";
-import { monthFromYMD } from "../state/logic";
+import { useMemo, useState, useEffect } from "react";
+import { useSupaDB } from "../state/SupabaseDBContext";
+import { displayName, endOfTodayYMD, startOfPrevMonthYMD, endOfPrevMonthYMD, monthKey, prevMonthKey, startOfMonthYMD, } from "../state/db";
+import { type PeriodFilter, type TypeFilter, type StockMovement } from "../state/db";
+// import { monthFromYMD } from "../state/logic";
 
 export default function History() {
-    const { db } = useDB();
+    const { products, podologists, fetchMovements } = useSupaDB();
     const [period, setPeriod] = useState<PeriodFilter>("CURRENT");
     const [podologist, setPodologist] = useState<string>("ALL");
     const [type, setType] = useState<TypeFilter>("ALL");
+    const [items, setItems] = useState<StockMovement[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
 
     const currentMonth = monthKey();
     const previousMonth = prevMonthKey(currentMonth);
 
-    const items = useMemo(() => {
-        const byPeriod = (m: any) => {
-            if (period === "ALL") return true;
-            const mon = monthFromYMD(m.occurredAt);
-            if (period === "CURRENT") return mon === currentMonth;
-            return mon === previousMonth;
+
+    const range = useMemo(() => {
+        const now = new Date();
+        if (period === "ALL") return { from: undefined as string | undefined, to: undefined as string | undefined };
+
+        if (period === "CURRENT") {
+            return { from: startOfMonthYMD(now), to: endOfTodayYMD(now) };
+        }
+
+        // PREVIOUS
+        return { from: startOfPrevMonthYMD(now), to: endOfPrevMonthYMD(now) };
+    }, [period])
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const run = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const data = await fetchMovements({
+                    from: range.from,
+                    to: range.to,
+                    type: type === "ALL" ? "ALL" : type,
+                    podologist: podologist === "ALL" ? "ALL" : podologist,
+                });
+
+                if (!cancelled) setItems(data);
+            } catch (e: any) {
+                if (!cancelled) {
+                    setItems([]);
+                    setError(e?.message ?? "Nie udało się pobrać historii.");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
         };
 
-        const byType = (m: any) => (type === "ALL" ? true : m.type === type);
-
-        const byPodologist = (m: any) => {
-            if (podologist === "ALL") return true;
-            // filtr działa tylko sensownie dla SALE/CLINIC, ale jeśli ktoś wybierze podologa,
-            // to IN/ADJUST po prostu nie przejdą (bo mają undefined)
-            return (m.podologist ?? "") === podologist;
+        run();
+        return () => {
+            cancelled = true;
         };
+    }, [fetchMovements, range.from, range.to, type, podologist]);
 
-        return db.movements
-            .filter((m) => byPeriod(m) && byType(m) && byPodologist(m))
-            .slice()
-            .sort((a, b) => {
-                // najpierw data zdarzenia (occurredAt) malejąco
-                const c = b.occurredAt.localeCompare(a.occurredAt);
-                if (c !== 0) return c;
-                // potem data wpisu (createdAt) malejąco
-                return b.createdAt.localeCompare(a.createdAt);
-            });
-    }, [db.movements, period, podologist, type, currentMonth, previousMonth]);
+    const countLabel = useMemo(() => {
+        if (period === "ALL") return "Cała historia";
+        if (period === "CURRENT") return `Bieżący miesiąc (${monthKey()})`;
+        // previous
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return `Poprzedni miesiąc (${monthKey(prev)})`;
+    }, [period]);
 
     return (
         <section style={{ padding: 16, border: "1px solid #e5e5e5", borderRadius: 16 }}>
@@ -70,9 +99,9 @@ export default function History() {
                     <span style={filterText}>Podolog</span>
                     <select value={podologist} onChange={(e) => setPodologist(e.target.value)} style={sel}>
                         <option value="ALL">Wszyscy</option>
-                        {PODologists.map((p) => (
-                            <option key={p} value={p}>
-                                {p}
+                        {podologists.map((p) => (
+                            <option key={p.id} value={p.name}>
+                                {p.name}
                             </option>
                         ))}
                     </select>
@@ -100,7 +129,7 @@ export default function History() {
                         </thead>
                         <tbody>
                             {items.map((m) => {
-                                const p = db.products.find((x) => x.id === m.productId);
+                                const p = products.find((x) => x.id === m.product_id);
                                 const typeLabel =
                                     m.type === "IN" ? "Dostawa" :
                                         m.type === "SALE" ? "Sprzedaż" :
@@ -108,12 +137,12 @@ export default function History() {
                                                 "Korekta";
                                 return (
                                     <tr key={m.id}>
-                                        <td style={td}>{m.occurredAt.split("-").reverse().join("-")}</td>
+                                        <td style={td}>{m.occurred_at.split("-").reverse().join("-")}</td>
                                         <td style={td}>{typeLabel}</td>
-                                        <td style={td}>{p ? displayName(p) : m.productId}</td>
+                                        <td style={td}>{p ? displayName(p) : m.product_id}</td>
                                         <td style={td}>{m.qty}</td>
                                         <td style={td}>{m.note ?? "-"}</td>
-                                        <td style={td}>{(m.type === "SALE" || m.type === "CLINIC") ? (m.podologist ?? "-") : "-"}</td>
+                                        <td style={td}>{(m.type === "SALE" || m.type === "CLINIC") ? (m.podologist_name ?? "-") : "-"}</td>
                                     </tr>
                                 );
                             })}

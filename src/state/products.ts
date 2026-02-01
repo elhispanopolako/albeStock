@@ -17,12 +17,13 @@ export function addProduct(
         id: uid("p"),
         producer: input.producer,
         name: input.name.trim(),
-        productType: input.productType,
-        size: input.size?.trim() ? input.size.trim() : undefined,
+        product_type: input.productType,
+        size: input.size?.trim() ? input.size.trim() : null,
         unit: "szt",
         stock: Math.max(0, Math.floor(input.stock)),
-        minLevel: Math.max(0, Math.floor(input.minLevel)),
-        createdAt: nowISO(),
+        min_level: Math.max(0, Math.floor(input.minLevel)),
+        created_at: nowISO(),
+        updated_at: nowISO(),
     };
 
 
@@ -73,9 +74,10 @@ export function updateProduct(
         ...current,
         producer: patch.producer,
         name: patch.name.trim(),
-        productType: patch.productType,
-        size: patch.size?.trim() ? patch.size.trim() : undefined,
-        minLevel: Math.max(0, Math.floor(patch.minLevel)),
+        product_type: patch.productType,
+        size: patch.size?.trim() ? patch.size.trim() : null,
+        min_level: Math.max(0, Math.floor(patch.minLevel)),
+        updated_at: nowISO(),
     };
 
     const products = db.products.slice();

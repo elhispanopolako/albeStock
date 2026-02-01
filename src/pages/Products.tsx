@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useDB } from "../state/DBContext";
+import { useSupaDB } from "../state/SupabaseDBContext";
 import MovementModal from "../components/MovementModal";
 import { type Producer, type ProductType, displayName } from "../state/db";
 import AddProductModal from "../components/AddProductModal";
@@ -8,7 +8,7 @@ import EditProductModal from "../components/EditProductModal";
 
 
 export default function Products() {
-    const { db, move, addProduct, editProduct } = useDB();
+    const { products, applyMovement, addProduct, editProduct } = useSupaDB();
     const [q, setQ] = useState("");
     const [producer, setProducer] = useState<Producer | "ALL">("ALL");
     const [ptype, setPtype] = useState<ProductType | "ALL">("ALL");
@@ -20,14 +20,14 @@ export default function Products() {
     const [sortKey, setSortKey] = useState<SortKey>("NAME_ASC");
     const [editOpen, setEditOpen] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
-    const editProductItem = editId ? db.products.find((p) => p.id === editId) ?? null : null;
+    const editProductItem = editId ? products.find((p) => p.id === editId) ?? null : null;
 
 
     const filtered = useMemo(() => {
         const qq = q.trim().toLowerCase();
-        const base = db.products.filter((p) => {
+        const base = products.filter((p) => {
             if (producer !== "ALL" && p.producer !== producer) return false;
-            if (ptype !== "ALL" && p.productType !== ptype) return false;
+            if (ptype !== "ALL" && p.product_type !== ptype) return false;
             if (!qq) return true;
             return displayName(p).toLowerCase().includes(qq);
         });
@@ -44,7 +44,7 @@ export default function Products() {
             });
         }
         return base
-    }, [db.products, producer, ptype, q, sortKey]);
+    }, [products, producer, ptype, q, sortKey]);
 
     return (
         <section style={{ padding: 16, border: "1px solid #e5e5e5", borderRadius: 16 }}>
@@ -119,7 +119,7 @@ export default function Products() {
                                     <td style={td}>{p.producer}</td>
                                     <td style={td}>{p.stock}</td>
                                     <td style={td}>
-                                        <StatusBadge stock={p.stock} minLevel={p.minLevel} />
+                                        <StatusBadge stock={p.stock} minLevel={p.min_level} />
                                     </td>
                                     <td style={td}>
                                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -167,10 +167,10 @@ export default function Products() {
             <MovementModal
                 open={open}
                 onClose={() => setOpen(false)}
-                products={db.products}
+                products={products}
                 defaultProductId={defaultPid}
                 mode={mode}
-                onSubmit={(args) => move(args)}
+                onSubmit={(args) => applyMovement(args)}
             />
             <AddProductModal
                 open={addOpen}
