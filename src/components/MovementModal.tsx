@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { type MovementType, type Product, displayName } from "../state/db";
-import { todayYMD, isInCurrentMonth, startOfMonthYMD } from "../state/logic";
+import { todayYMD, isInCurrentMonth, startOfMonthYMD, isNotFutureYMD } from "../state/logic";
 import { useSupaDB } from "../state/SupabaseDBContext";
 type Props = {
     open: boolean;
@@ -15,7 +15,7 @@ export default function MovementModal({ open, onClose, products, defaultProductI
     const { podologists } = useSupaDB();
     const [productId, setProductId] = useState(defaultProductId ?? products[0]?.id ?? "");
     const [type, setType] = useState<MovementType>("SALE");
-    const [qty, setQty] = useState<number>(1);
+    const [qty, setQty] = useState<string>("");
     const [note, setNote] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [podologist, setPodologist] = useState<string>("");
@@ -29,7 +29,7 @@ export default function MovementModal({ open, onClose, products, defaultProductI
         if (!open) return;
         setProductId(defaultProductId ?? products[0]?.id ?? "");
         setType("SALE");
-        setQty(1);
+        setQty("1");
         setNote("");
         setError(null);
 
@@ -51,10 +51,10 @@ export default function MovementModal({ open, onClose, products, defaultProductI
         setError(null);
 
         if (!productId) return setError("Wybierz produkt.");
+        let qtyNumber = Number(qty)
+        if (!Number.isFinite(qtyNumber) || qtyNumber <= 0) return setError("Ilość musi być > 0.");
 
-        if (!Number.isFinite(qty) || qty <= 0) return setError("Ilość musi być > 0.");
-
-        if ((type === "SALE" || type === "CLINIC") && selected && selected.stock - qty < 0) {
+        if ((type === "SALE" || type === "CLINIC") && selected && selected.stock - qtyNumber < 0) {
             return setError("Brak wystarczającego stanu (nie można zejść poniżej zera).");
         }
         if ((type === "SALE" || type === "CLINIC") && !podologist) return setError("Wybierz podologa.");
@@ -65,12 +65,12 @@ export default function MovementModal({ open, onClose, products, defaultProductI
         }
         if (!occurredAt) return setError("Wybierz datę zdarzenia.");
         if (!isInCurrentMonth(occurredAt)) return setError("Można dodawać ruchy tylko w bieżącym miesiącu.");
-
+        if (!isNotFutureYMD(occurredAt)) return setError("Brak możliwości dodania daty przyszłej")
 
         onSubmit({
             productId,
             type,
-            qty: Math.floor(qty),
+            qty: Math.floor(qtyNumber),
             note: note.trim() ? note.trim() : undefined,
             occurredAt,
             ...((type === "SALE" || type === "CLINIC") ? { podologist } : {})
@@ -138,10 +138,11 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                             {type === "ADJUST" ? "Ustaw stan na (szt.)" : "Ilość (szt.)"}
                         </span>
                         <input
-                            type="number"
-                            min={1}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={qty}
-                            onChange={(e) => setQty(Number(e.target.value))}
+                            onChange={(e) => setQty(e.target.value)}
                             style={input}
                         />
                     </label>

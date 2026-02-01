@@ -100,6 +100,10 @@ export function isInCurrentMonth(ymd: string, d = new Date()) {
     return monthFromYMD(ymd) === monthKey(d);
 }
 
+export function isNotFutureYMD(value: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false; // prosty check formatu
+    return value <= todayYMD();
+}
 export function createMovement(params: {
     productId: string;
     type: MovementType;

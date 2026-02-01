@@ -20,7 +20,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
     const [name, setName] = useState("");
     const [productType, setProductType] = useState<ProductType>("inne");
     const [size, setSize] = useState("");
-    const [minLevel, setMinLevel] = useState<number>(0);
+    const [minLevel, setMinLevel] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -29,7 +29,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
         setName(product.name);
         setProductType(product.product_type);
         setSize(product.size ?? "");
-        setMinLevel(product.min_level);
+        setMinLevel(String(product.min_level));
         setError(null);
     }, [open, product]);
 
@@ -37,8 +37,9 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
 
     const submit = () => {
         setError(null);
+        let minLevelNumber = Number(minLevel)
         if (!name.trim()) return setError("Podaj nazwę produktu.");
-        if (!Number.isFinite(minLevel) || minLevel < 0) return setError("Minimum musi być ≥ 0.");
+        if (!Number.isFinite(minLevelNumber) || minLevelNumber < 0) return setError("Minimum musi być ≥ 0.");
 
         onSubmit({
             id: product.id,
@@ -46,7 +47,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
             name: name.trim(),
             productType,
             size: size.trim() ? size.trim() : undefined,
-            minLevel: Math.floor(minLevel),
+            minLevel: Math.floor(minLevelNumber),
         });
         onClose();
     };
@@ -97,7 +98,9 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
 
                     <label style={field}>
                         <span style={label}>Minimum (alert)</span>
-                        <input type="number" min={0} value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} style={input} />
+                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={minLevel} onChange={(e) => {
+                            return setMinLevel(e.target.value);
+                        }} style={input} />
                     </label>
 
                     {error ? <div style={errorBox}>{error}</div> : null}

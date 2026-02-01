@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { type Producer, type ProductType } from "../state/db";
-
+const ZERO = "0"
 type Props = {
     open: boolean;
     onClose: () => void;
@@ -19,8 +19,8 @@ export default function AddProductModal({ open, onClose, onSubmit }: Props) {
     const [name, setName] = useState("");
     const [productType, setProductType] = useState<ProductType>("inne");
     const [size, setSize] = useState("");
-    const [stock, setStock] = useState<number>(0);
-    const [minLevel, setMinLevel] = useState<number>(0);
+    const [stock, setStock] = useState<string>(ZERO);
+    const [minLevel, setMinLevel] = useState<string>(ZERO);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -29,8 +29,8 @@ export default function AddProductModal({ open, onClose, onSubmit }: Props) {
         setName("");
         setProductType("inne");
         setSize("");
-        setStock(0);
-        setMinLevel(0);
+        setStock(ZERO);
+        setMinLevel(ZERO);
         setError(null);
     }, [open]);
 
@@ -39,16 +39,18 @@ export default function AddProductModal({ open, onClose, onSubmit }: Props) {
     const submit = () => {
         setError(null);
         if (!name.trim()) return setError("Podaj nazwę produktu.");
-        if (stock < 0 || !Number.isFinite(stock)) return setError("Stan początkowy musi być ≥ 0.");
-        if (minLevel < 0 || !Number.isFinite(minLevel)) return setError("Minimum musi być ≥ 0.");
+        let stockNumber = Number(stock)
+        let minLevelNumber = Number(minLevel)
+        if (stockNumber < 0 || !Number.isFinite(stockNumber)) return setError("Stan początkowy musi być ≥ 0.");
+        if (minLevelNumber < 0 || !Number.isFinite(minLevelNumber)) return setError("Minimum musi być ≥ 0.");
 
         onSubmit({
             producer,
             name: name.trim(),
             productType,
             size: size.trim() ? size.trim() : undefined,
-            stock: Math.floor(stock),
-            minLevel: Math.floor(minLevel),
+            stock: Math.floor(stockNumber),
+            minLevel: Math.floor(minLevelNumber),
         });
         onClose();
     };
@@ -100,12 +102,12 @@ export default function AddProductModal({ open, onClose, onSubmit }: Props) {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                         <label style={field}>
                             <span style={label}>Stan początkowy (szt.)</span>
-                            <input type="number" min={0} value={stock} onChange={(e) => setStock(Number(e.target.value))} style={input} />
+                            <input type="text" inputMode="numeric" pattern="[0-9]*" value={stock} onChange={(e) => setStock(e.target.value)} style={input} />
                         </label>
 
                         <label style={field}>
                             <span style={label}>Minimum (alert)</span>
-                            <input type="number" min={0} value={minLevel} onChange={(e) => setMinLevel(Number(e.target.value))} style={input} />
+                            <input type="text" inputMode="numeric" pattern="[0-9]*" value={minLevel} onChange={(e) => setMinLevel(e.target.value)} style={input} />
                         </label>
                     </div>
 

@@ -101,7 +101,8 @@ export default function Dashboard() {
 
                 // diff > 0 oznacza spadek stanu w miesiącu (rozchód netto)
                 const diff =
-                    startVal == null || endVal == null ? null : startVal - endVal;
+                    startVal == null || endVal == null ? null : endVal - startVal;
+
 
                 return { p, startVal, endVal, diff };
             })
@@ -226,7 +227,7 @@ export default function Dashboard() {
                                             <td style={td}>{displayName(p)}</td>
                                             <td style={td}>{startVal == null ? "-" : startVal}</td>
                                             <td style={td}>{endVal == null ? "-" : endVal}</td>
-                                            <td style={td}>{diff == null ? "-" : diff}</td>
+                                            <td style={td}>{formatDiff(diff)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -255,6 +256,12 @@ export default function Dashboard() {
     );
 }
 
+function formatDiff(diff: number | null) {
+    if (diff == null) return "-";
+    if (diff > 0) return `+${diff}`;
+    return diff; // 0 lub ujemne
+}
+
 const sel: React.CSSProperties = {
     padding: "8px 10px",
     borderRadius: 10,
@@ -266,7 +273,7 @@ const filterLabel: React.CSSProperties = { display: "grid", gap: 6 };
 const filterText: React.CSSProperties = { fontSize: 12, color: "#555", fontWeight: 800 };
 
 const th: React.CSSProperties = { textAlign: "left", borderBottom: "1px solid #eee", padding: "8px 6px", whiteSpace: "nowrap" };
-const td: React.CSSProperties = { borderBottom: "1px solid #f2f2f2", padding: "8px 6px" };
+const td: React.CSSProperties = { borderBottom: "1px solid #f2f2f2", padding: "8px 6px", textAlign: "left" };
 
 const errorBox: React.CSSProperties = {
     padding: 10,
