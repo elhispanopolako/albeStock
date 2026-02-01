@@ -52,7 +52,7 @@ export function listAvailableMonths(db: DB) {
     const months = new Set<string>();
 
     for (const s of db.monthlySnapshots) months.add(s.month);
-    for (const m of db.movements) months.add(monthFromYMD(m.occurredAt));
+    for (const m of db.movements) months.add(monthFromYMD(m.occurred_at));
 
     // zawsze dodaj bieżący miesiąc
     months.add(monthKey());
@@ -61,7 +61,7 @@ export function listAvailableMonths(db: DB) {
 }
 
 export function applyMovement(db: DB, mv: StockMovement): DB {
-    const idx = db.products.findIndex((p) => p.id === mv.productId);
+    const idx = db.products.findIndex((p) => p.id === mv.product_id);
     if (idx < 0) return db;
 
     const p = db.products[idx];

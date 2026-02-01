@@ -62,14 +62,6 @@ export default function History() {
         };
     }, [fetchMovements, range.from, range.to, type, podologist]);
 
-    const countLabel = useMemo(() => {
-        if (period === "ALL") return "Cała historia";
-        if (period === "CURRENT") return `Bieżący miesiąc (${monthKey()})`;
-        // previous
-        const now = new Date();
-        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        return `Poprzedni miesiąc (${monthKey(prev)})`;
-    }, [period]);
 
     return (
         <section style={{ padding: 16, border: "1px solid #e5e5e5", borderRadius: 16 }}>
@@ -111,7 +103,10 @@ export default function History() {
                     Wyników: <b>{items.length}</b>
                 </div>
             </div>
-            {items.length === 0 ? (
+            {error ? <div style={errorBox}>{error}</div> : null}
+            {loading ? (
+                <div style={{ color: "#666" }}>Ładowanie…</div>
+            ) : items.length === 0 ? (
                 <p style={{ color: "#555" }}>Brak ruchów.</p>
             ) : (
                 <div style={{ overflowX: "auto" }}>
@@ -159,3 +154,12 @@ const filterLabel: React.CSSProperties = { display: "grid", gap: 6 };
 const filterText: React.CSSProperties = { fontSize: 12, color: "#555", fontWeight: 800 };
 const th: React.CSSProperties = { textAlign: "left", borderBottom: "1px solid #eee", padding: "8px 6px" };
 const td: React.CSSProperties = { borderBottom: "1px solid #f2f2f2", padding: "8px 6px" };
+const errorBox: React.CSSProperties = {
+    padding: 10,
+    borderRadius: 12,
+    background: "#ffe8e8",
+    border: "1px solid #ffb3b3",
+    color: "#8a0000",
+    fontWeight: 800,
+    marginTop: 8,
+};
