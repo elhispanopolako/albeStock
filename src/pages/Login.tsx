@@ -11,7 +11,6 @@ function usernameToEmail(u: string) {
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [mode, setMode] = useState<"login" | "signup">("login");
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
 
@@ -24,13 +23,8 @@ export default function Login() {
 
         setBusy(true);
         try {
-            if (mode === "login") {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-            } else {
-                const { error } = await supabase.auth.signUp({ email, password });
-                if (error) throw error;
-            }
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
         } catch (e: any) {
             setError(e?.message ?? "Błąd logowania.");
         } finally {
@@ -41,12 +35,7 @@ export default function Login() {
     return (
         <div style={s.wrap}>
             <div style={s.card}>
-                <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 6 }}>
-                    {mode === "login" ? "Zaloguj się" : "Utwórz konto"}
-                </div>
-                <div style={{ color: "#666", fontSize: 13, marginBottom: 16 }}>
-                    Logowanie przez username + hasło.
-                </div>
+                <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 6 }}>Zaloguj się</div>
 
                 <label style={s.field}>
                     <span style={s.label}>Username</span>
@@ -66,34 +55,15 @@ export default function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         style={s.input}
                         type="password"
-                        placeholder="••••••••"
-                        autoComplete={mode === "login" ? "current-password" : "new-password"}
+                        autoComplete="current-password"
                     />
                 </label>
 
                 {error ? <div style={s.error}>{error}</div> : null}
 
                 <button onClick={submit} style={s.btn} disabled={busy}>
-                    {busy ? "…" : mode === "login" ? "Zaloguj" : "Zarejestruj"}
+                    {busy ? "…" : "Zaloguj"}
                 </button>
-
-                {/* <div style={{ marginTop: 12, fontSize: 13, color: "#444" }}>
-                    {mode === "login" ? (
-                        <span>
-                            Nie masz konta?{" "}
-                            <button style={s.linkBtn} onClick={() => setMode("signup")} disabled={busy}>
-                                Zarejestruj
-                            </button>
-                        </span>
-                    ) : (
-                        <span>
-                            Masz konto?{" "}
-                            <button style={s.linkBtn} onClick={() => setMode("login")} disabled={busy}>
-                                Zaloguj
-                            </button>
-                        </span>
-                    )}
-                </div> */}
             </div>
         </div>
     );
