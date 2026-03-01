@@ -66,6 +66,11 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
     const [snapshots, setSnapshots] = useState<SnapshotRow[]>([]);
 
     const refreshAll = async () => {
+        const { error: snapshotError } = await supabase.rpc("ensure_current_month_snapshot");
+
+        if (snapshotError) {
+            console.error("Błąd podczas sprawdzania snapshotu:", snapshotError);
+        }
         const [p, po, s] = await Promise.all([
             supabase.from("products").select("*").order("name", { ascending: true }),
             supabase.from("podologists").select("*").eq("active", true).order("name", { ascending: true }),
@@ -148,9 +153,6 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
             min_level: Math.max(0, Math.floor(args.minLevel)),
         });
         if (error) throw error;
-
-        // upewnij snapshot start dla bieżącego miesiąca
-        await supabase.rpc("ensure_current_month_snapshot");
         await refreshAll();
     };
 
