@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { type MovementType, type Product, displayName } from "../state/db";
 import { todayYMD, isInCurrentMonth, startOfMonthYMD, isNotFutureYMD } from "../state/logic";
 import { useSupaDB } from "../state/SupabaseDBContext";
+
 type Props = {
     open: boolean;
     onClose: () => void;
@@ -23,8 +24,6 @@ export default function MovementModal({ open, onClose, products, defaultProductI
     const showTypeSelect = mode === "SUPPLY";
     const [occurredAt, setOccurredAt] = useState<string>(todayYMD());
 
-
-
     useEffect(() => {
         if (!open) return;
         setProductId(defaultProductId ?? products[0]?.id ?? "");
@@ -44,8 +43,7 @@ export default function MovementModal({ open, onClose, products, defaultProductI
 
     if (!open) return null;
 
-    const title =
-        type === "IN" ? "Dostawa" : type === "SALE" ? "Sprzedaż" : type === "CLINIC" ? "Zużycie w gabinecie" : "Korekta (ustaw stan)";
+    const title = type === "IN" ? "Dostawa" : type === "SALE" ? "Sprzedaż" : type === "CLINIC" ? "Zużycie w gabinecie" : "Korekta (ustaw stan)";
 
     const submit = () => {
         setError(null);
@@ -58,7 +56,6 @@ export default function MovementModal({ open, onClose, products, defaultProductI
             return setError("Brak wystarczającego stanu (nie można zejść poniżej zera).");
         }
         if ((type === "SALE" || type === "CLINIC") && !podologist) return setError("Wybierz podologa.");
-
 
         if (type === "ADJUST" && note.trim().length < 3) {
             return setError("Podaj powód korekty (min. 3 znaki).");
@@ -74,34 +71,33 @@ export default function MovementModal({ open, onClose, products, defaultProductI
             note: note.trim() ? note.trim() : undefined,
             occurredAt,
             ...((type === "SALE" || type === "CLINIC") ? { podologist } : {})
-
         });
 
         onClose();
     };
 
     return (
-        <div style={backdrop} role="dialog" aria-modal="true">
-            <div style={modal}>
-                <div style={header}>
+        <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-[999]" role="dialog" aria-modal="true">
+            <div className="w-full max-w-[680px] bg-white rounded-2xl overflow-hidden shadow-2xl">
+                <div className="p-4 border-b border-neutral-200 flex items-start justify-between gap-3">
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
+                        <div className="font-extrabold text-lg text-neutral-900">{title}</div>
                         {selected ? (
-                            <div style={{ color: "#555", marginTop: 4 }}>
-                                {displayName(selected)} — stan: <b>{selected.stock}</b> szt
+                            <div className="text-neutral-500 mt-1 text-sm">
+                                {displayName(selected)} — stan: <b className="text-neutral-800">{selected.stock}</b> szt
                             </div>
                         ) : null}
                     </div>
-                    <button onClick={onClose} style={btnSecondary}>
+                    <button onClick={onClose} className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-800 font-bold text-sm hover:bg-neutral-200 transition-colors">
                         Zamknij
                     </button>
                 </div>
 
-                <div style={{ padding: 16, display: "grid", gap: 12 }}>
+                <div className="p-4 grid gap-3">
                     {showTypeSelect ? (
-                        <label style={field}>
-                            <span style={label}>Rodzaj ruchu</span>
-                            <select value={type} onChange={(e) => setType(e.target.value as MovementType)} style={input}>
+                        <label className="grid gap-1.5">
+                            <span className="text-xs text-neutral-500 font-bold">Rodzaj ruchu</span>
+                            <select value={type} onChange={(e) => setType(e.target.value as MovementType)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                                 <option value="IN">Dostawa</option>
                                 <option value="ADJUST">Korekta (ustaw stan)</option>
                             </select>
@@ -109,9 +105,9 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                     ) : null}
 
                     {showPodologist ? (
-                        <label style={field}>
-                            <span style={label}>Podolog</span>
-                            <select value={podologist} onChange={(e) => setPodologist(e.target.value)} style={input}>
+                        <label className="grid gap-1.5">
+                            <span className="text-xs text-neutral-500 font-bold">Podolog</span>
+                            <select value={podologist} onChange={(e) => setPodologist(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                                 <option value="">Wybierz podologa</option>
                                 {podologists.map((p) => (
                                     <option key={p.id} value={p.name}>
@@ -122,9 +118,9 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                         </label>
                     ) : null}
 
-                    <label style={field}>
-                        <span style={label}>Produkt</span>
-                        <select value={productId} onChange={(e) => setProductId(e.target.value)} style={input}>
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">Produkt</span>
+                        <select value={productId} onChange={(e) => setProductId(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                             {products.map((p) => (
                                 <option key={p.id} value={p.id}>
                                     {p.producer} — {displayName(p)}
@@ -133,8 +129,8 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                         </select>
                     </label>
 
-                    <label style={field}>
-                        <span style={label}>
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">
                             {type === "ADJUST" ? "Ustaw stan na (szt.)" : "Ilość (szt.)"}
                         </span>
                         <input
@@ -143,40 +139,41 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                             pattern="[0-9]*"
                             value={qty}
                             onChange={(e) => setQty(e.target.value)}
-                            style={input}
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 transition-colors"
                         />
                     </label>
-                    <label style={field}>
-                        <span style={label}>Data</span>
+
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">Data</span>
                         <input
                             type="date"
                             value={occurredAt}
                             onChange={(e) => setOccurredAt(e.target.value)}
-                            style={input}
                             min={startOfMonthYMD()}
                             max={todayYMD()}
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors"
                         />
                     </label>
 
-                    <label style={field}>
-                        <span style={label}>
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">
                             Notatka{type === "ADJUST" ? " (wymagana)" : " (opcjonalna)"}
                         </span>
                         <input
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
-                            style={input}
                             placeholder={type === "ADJUST" ? "Np. korekta po inwentaryzacji" : "Np. dostawa / uwagi"}
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 transition-colors"
                         />
                     </label>
 
-                    {error ? <div style={errorBox}>{error}</div> : null}
+                    {error ? <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-sm">{error}</div> : null}
 
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 6 }}>
-                        <button onClick={onClose} style={btnSecondary}>
+                    <div className="flex justify-end gap-2.5 mt-2">
+                        <button onClick={onClose} className="px-4 py-2 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-900 font-extrabold hover:bg-neutral-200 transition-colors">
                             Anuluj
                         </button>
-                        <button onClick={submit} style={btnPrimary}>
+                        <button onClick={submit} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors">
                             Zapisz
                         </button>
                     </div>
@@ -185,69 +182,3 @@ export default function MovementModal({ open, onClose, products, defaultProductI
         </div>
     );
 }
-
-const backdrop: React.CSSProperties = {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.45)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-    zIndex: 999,
-};
-
-const modal: React.CSSProperties = {
-    width: "min(680px, 95vw)",
-    background: "white",
-    borderRadius: 16,
-    overflow: "hidden",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-};
-
-const header: React.CSSProperties = {
-    padding: 16,
-    borderBottom: "1px solid #eee",
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 12,
-};
-
-const field: React.CSSProperties = { display: "grid", gap: 6 };
-const label: React.CSSProperties = { fontSize: 12, color: "#555", fontWeight: 700 };
-const input: React.CSSProperties = {
-    padding: "10px 12px",
-    border: "1px solid #ddd",
-    borderRadius: 12,
-    outline: "none",
-};
-
-const btnPrimary: React.CSSProperties = {
-    padding: "10px 14px",
-    borderRadius: 12,
-    border: "1px solid #111",
-    background: "#111",
-    color: "white",
-    fontWeight: 800,
-    cursor: "pointer",
-};
-
-const btnSecondary: React.CSSProperties = {
-    padding: "10px 14px",
-    borderRadius: 12,
-    border: "1px solid #ddd",
-    background: "#f5f5f5",
-    color: "#111",
-    fontWeight: 800,
-    cursor: "pointer",
-};
-
-const errorBox: React.CSSProperties = {
-    padding: 10,
-    borderRadius: 12,
-    background: "#ffe8e8",
-    border: "1px solid #ffb3b3",
-    color: "#8a0000",
-    fontWeight: 700,
-};

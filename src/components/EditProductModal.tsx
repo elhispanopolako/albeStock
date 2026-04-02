@@ -37,7 +37,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
 
     const submit = () => {
         setError(null);
-        let minLevelNumber = Number(minLevel)
+        let minLevelNumber = Number(minLevel);
         if (!name.trim()) return setError("Podaj nazwę produktu.");
         if (!Number.isFinite(minLevelNumber) || minLevelNumber < 0) return setError("Minimum musi być ≥ 0.");
 
@@ -53,31 +53,33 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
     };
 
     return (
-        <div style={backdrop} role="dialog" aria-modal="true">
-            <div style={modal}>
-                <div style={header}>
-                    <div style={{ fontWeight: 900, fontSize: 16 }}>Edytuj produkt</div>
-                    <button onClick={onClose} style={btnSecondary}>Zamknij</button>
+        <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-[999]" role="dialog" aria-modal="true">
+            <div className="w-full max-w-[680px] bg-white rounded-2xl overflow-hidden shadow-2xl">
+                <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
+                    <div className="font-extrabold text-lg text-neutral-900">Edytuj produkt</div>
+                    <button onClick={onClose} className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-800 font-bold text-sm hover:bg-neutral-200 transition-colors">
+                        Zamknij
+                    </button>
                 </div>
 
-                <div style={{ padding: 16, display: "grid", gap: 12 }}>
-                    <label style={field}>
-                        <span style={label}>Producent</span>
-                        <select value={producer} onChange={(e) => setProducer(e.target.value as Producer)} style={input}>
+                <div className="p-4 grid gap-3">
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">Producent</span>
+                        <select value={producer} onChange={(e) => setProducer(e.target.value as Producer)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                             <option value="Podopharm">Podopharm</option>
                             <option value="Epione">Epione</option>
                             <option value="Podoland">Podoland</option>
                         </select>
                     </label>
 
-                    <label style={field}>
-                        <span style={label}>Nazwa</span>
-                        <input value={name} onChange={(e) => setName(e.target.value)} style={input} />
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">Nazwa</span>
+                        <input value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 transition-colors" />
                     </label>
 
-                    <label style={field}>
-                        <span style={label}>Typ produktu</span>
-                        <select value={productType} onChange={(e) => setProductType(e.target.value as ProductType)} style={input}>
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">Typ produktu</span>
+                        <select value={productType} onChange={(e) => setProductType(e.target.value as ProductType)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                             <option value="spray">spray</option>
                             <option value="krople">krople</option>
                             <option value="krem">krem</option>
@@ -91,36 +93,28 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
                         </select>
                     </label>
 
-                    <label style={field}>
-                        <span style={label}>Wielkość (opcjonalnie)</span>
-                        <input value={size} onChange={(e) => setSize(e.target.value)} style={input} />
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">Wielkość (opcjonalnie)</span>
+                        <input value={size} onChange={(e) => setSize(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 transition-colors" />
                     </label>
 
-                    <label style={field}>
-                        <span style={label}>Minimum (alert)</span>
-                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={minLevel} onChange={(e) => {
-                            return setMinLevel(e.target.value);
-                        }} style={input} />
+                    <label className="grid gap-1.5">
+                        <span className="text-xs text-neutral-500 font-bold">Minimum (alert)</span>
+                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={minLevel} onChange={(e) => setMinLevel(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 transition-colors" />
                     </label>
 
-                    {error ? <div style={errorBox}>{error}</div> : null}
+                    {error ? <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-sm">{error}</div> : null}
 
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-                        <button onClick={onClose} style={btnSecondary}>Anuluj</button>
-                        <button onClick={submit} style={btnPrimary}>Zapisz</button>
+                    <div className="flex justify-end gap-2.5 mt-2">
+                        <button onClick={onClose} className="px-4 py-2 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-900 font-extrabold hover:bg-neutral-200 transition-colors">
+                            Anuluj
+                        </button>
+                        <button onClick={submit} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors">
+                            Zapisz
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     );
 }
-
-const backdrop: React.CSSProperties = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 999 };
-const modal: React.CSSProperties = { width: "min(680px, 95vw)", background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" };
-const header: React.CSSProperties = { padding: 16, borderBottom: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between" };
-const field: React.CSSProperties = { display: "grid", gap: 6 };
-const label: React.CSSProperties = { fontSize: 12, color: "#555", fontWeight: 800 };
-const input: React.CSSProperties = { padding: "10px 12px", border: "1px solid #ddd", borderRadius: 12, outline: "none" };
-const btnPrimary: React.CSSProperties = { padding: "10px 14px", borderRadius: 12, border: "1px solid #111", background: "#111", color: "white", fontWeight: 900, cursor: "pointer" };
-const btnSecondary: React.CSSProperties = { padding: "10px 14px", borderRadius: 12, border: "1px solid #ddd", background: "#f5f5f5", color: "#111", fontWeight: 900, cursor: "pointer" };
-const errorBox: React.CSSProperties = { padding: 10, borderRadius: 12, background: "#ffe8e8", border: "1px solid #ffb3b3", color: "#8a0000", fontWeight: 800 };

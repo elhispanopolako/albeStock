@@ -11,14 +11,6 @@ const SIDEBAR_KEY = "mvp_sidebar_collapsed";
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       const raw = localStorage.getItem(SIDEBAR_KEY);
@@ -29,28 +21,35 @@ export default function App() {
   });
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, JSON.stringify(collapsed));
   }, [collapsed]);
 
   if (!session) return <Login />;
 
-
   return (
-    <div style={s.shell}>
+    <div className="grid grid-cols-[auto_1fr] min-h-screen bg-neutral-50 text-neutral-900">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
 
-      <main style={s.main}>
-        <header style={s.header}>
-          <div style={{ fontWeight: 900 }}>Magazyn podologiczny</div>
+      <main className="min-w-0 flex flex-col">
+        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
+          <div className="font-black text-lg">Magazyn podologiczny</div>
           <button
             onClick={() => supabase.auth.signOut()}
-            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white", fontWeight: 800 }}
+            className="px-3 py-2 rounded-xl border border-neutral-300 bg-white font-extrabold shadow-sm hover:bg-neutral-100 transition-colors"
           >
             Wyloguj
           </button>
         </header>
 
-        <div style={s.content}>
+        <div className="p-4 w-full max-w-6xl mx-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
@@ -61,43 +60,3 @@ export default function App() {
     </div>
   );
 }
-
-const s: Record<string, React.CSSProperties> = {
-  shell: {
-    display: "grid",
-    gridTemplateColumns: "auto 1fr",
-    minHeight: "100vh",
-    background: "#fafafa",
-  },
-  main: {
-    minWidth: 0,
-    display: "flex",
-    flexDirection: "column",
-  },
-  header: {
-    position: "sticky",
-    top: 0,
-    zIndex: 5,
-    background: "rgba(250,250,250,0.9)",
-    backdropFilter: "blur(8px)",
-    borderBottom: "1px solid #eee",
-    padding: "12px 16px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  userInput: {
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid #ddd",
-    width: 180,
-    background: "white",
-  },
-  content: {
-    padding: 16,
-    maxWidth: 1100,
-    width: "100%",
-    boxSizing: "border-box",
-  },
-};

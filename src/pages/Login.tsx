@@ -33,86 +33,48 @@ export default function Login() {
     };
 
     return (
-        <div style={s.wrap}>
-            <div style={s.card}>
-                <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 6 }}>Zaloguj się</div>
+        <div className="min-h-screen grid place-items-center p-4 bg-neutral-50">
+            <div className="w-full max-w-[420px] bg-white border border-neutral-200 rounded-2xl p-6 shadow-xl">
+                <div className="font-black text-xl mb-6 text-neutral-900 text-center">
+                    Zaloguj się
+                </div>
 
-                <label style={s.field}>
-                    <span style={s.label}>Username</span>
+                <label className="grid gap-1.5 mb-4">
+                    <span className="text-xs text-neutral-500 font-extrabold">Username</span>
                     <input
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        style={s.input}
+                        className="px-3 py-2.5 rounded-xl border border-neutral-300 outline-none focus:border-blue-500 transition-colors w-full"
                         placeholder=""
                         autoComplete="username"
                     />
                 </label>
 
-                <label style={s.field}>
-                    <span style={s.label}>Hasło</span>
+                <label className="grid gap-1.5 mb-6">
+                    <span className="text-xs text-neutral-500 font-extrabold">Hasło</span>
                     <input
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        style={s.input}
+                        className="px-3 py-2.5 rounded-xl border border-neutral-300 outline-none focus:border-blue-500 transition-colors w-full"
                         type="password"
                         autoComplete="current-password"
                     />
                 </label>
 
-                {error ? <div style={s.error}>{error}</div> : null}
+                {error ? (
+                    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-sm mb-4">
+                        {error}
+                    </div>
+                ) : null}
 
-                <button onClick={submit} style={s.btn} disabled={busy}>
-                    {busy ? "…" : "Zaloguj"}
+                <button
+                    onClick={submit}
+                    disabled={busy}
+                    className="w-full px-4 py-2.5 rounded-xl border border-blue-600 bg-blue-600 text-white font-black hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {busy ? "Logowanie…" : "Zaloguj"}
                 </button>
             </div>
         </div>
     );
 }
-
-const s: Record<string, React.CSSProperties> = {
-    wrap: {
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        padding: 16,
-        background: "#fafafa",
-    },
-    card: {
-        width: "min(420px, 95vw)",
-        background: "white",
-        border: "1px solid #eee",
-        borderRadius: 16,
-        padding: 16,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
-    },
-    field: { display: "grid", gap: 6, marginBottom: 12 },
-    label: { fontSize: 12, color: "#555", fontWeight: 800 },
-    input: { padding: "10px 12px", borderRadius: 12, border: "1px solid #ddd", outline: "none" },
-    btn: {
-        width: "100%",
-        padding: "10px 14px",
-        borderRadius: 12,
-        border: "1px solid #2563eb",
-        background: "#2563eb",
-        color: "white",
-        fontWeight: 900,
-        cursor: "pointer",
-    },
-    linkBtn: {
-        border: "none",
-        background: "transparent",
-        padding: 0,
-        color: "#2563eb",
-        fontWeight: 900,
-        cursor: "pointer",
-    },
-    error: {
-        padding: 10,
-        borderRadius: 12,
-        background: "#ffe8e8",
-        border: "1px solid #ffb3b3",
-        color: "#8a0000",
-        fontWeight: 800,
-        marginBottom: 12,
-    },
-};

@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import "./sidebar.css"
 
 type Item = {
     to: string;
@@ -21,132 +20,72 @@ const items: Item[] = [
 export default function Sidebar({ collapsed, onToggle }: Props) {
     return (
         <aside
-            style={{
-                ...s.sidebar,
-                width: collapsed ? 64 : 240,
-            }}
+            className={`h-screen sticky top-0 border-r border-neutral-200 bg-white flex flex-col p-2 box-border transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${collapsed ? "w-16" : "w-60"
+                }`}
         >
-            <div style={s.top}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                    {!collapsed ? (
-                        <div style={{ fontWeight: 900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            Magazyn
-                        </div>
-                    ) : null}
+            <div className="flex items-center justify-between mb-4 mt-1 px-1">
+                {/* Tekst jest w kontenerze, który animuje swoją szerokość i przezroczystość.
+                  Dzięki temu przycisk strzałki łagodnie przysunie się do lewej krawędzi.
+                */}
+                <div
+                    className={`overflow-hidden transition-all duration-300 flex items-center ${collapsed ? "w-0 opacity-0" : "w-32 opacity-100"
+                        }`}
+                >
+                    <div className="font-black text-lg text-neutral-900">Magazyn</div>
                 </div>
 
-                <button onClick={onToggle} style={s.iconBtn} title={collapsed ? "Rozwiń" : "Zwiń"}>
+                <button
+                    onClick={onToggle}
+                    className="w-10 h-10 rounded-xl border border-neutral-200 bg-neutral-50 flex items-center justify-center cursor-pointer shrink-0 transition-all duration-150 hover:bg-neutral-200 hover:scale-105 text-neutral-800"
+                    title={collapsed ? "Rozwiń" : "Zwiń"}
+                >
                     {collapsed ? <IconChevronRight /> : <IconChevronLeft />}
                 </button>
             </div>
 
-            <nav style={s.nav}>
+            <nav className="grid gap-1.5">
                 {items.map((it) => (
                     <NavLink
                         key={it.to}
                         to={it.to}
                         end={it.to === "/"}
                         className={({ isActive }) =>
-                            `sidebar-link ${isActive ? "sidebar-link-active" : ""}`
+                            `text-neutral-900 rounded-xl flex items-center h-11 select-none transition-all duration-300 hover:bg-neutral-100 hover:translate-x-0.5 overflow-hidden ${isActive ? "bg-neutral-100 border-neutral-200" : ""
+                            }`
                         }
-                        style={{
-                            ...s.link,
-                            justifyContent: collapsed ? "center" : "flex-start",
-                        }}
                         title={collapsed ? it.label : undefined}
                     >
-                        <span style={s.iconWrap}>{it.icon}</span>
-                        {!collapsed ? <span style={s.linkText}>{it.label}</span> : null}
+                        {/* Pudełko ikony ma dokładnie szerokość zwiniętego paska minus marginesy (w-12 = 48px), więc zawsze jest idealnie na środku */}
+                        <span className="w-12 flex items-center justify-center shrink-0">
+                            {it.icon}
+                        </span>
+
+                        {/* Pudełko tekstu, które zwija się do w-0 */}
+                        <div
+                            className={`overflow-hidden transition-all duration-300 flex items-center ${collapsed ? "w-0 opacity-0" : "w-32 opacity-100"
+                                }`}
+                        >
+                            <span className="font-extrabold">
+                                {it.label}
+                            </span>
+                        </div>
                     </NavLink>
                 ))}
             </nav>
 
-            <div style={s.bottom}>
-                {!collapsed ? (
-                    <div style={{ fontSize: 12, color: "#666" }}>
+            <div className="mt-auto p-2 pb-3">
+                <div
+                    className={`overflow-hidden transition-all duration-300 ${collapsed ? "w-0 opacity-0" : "w-40 opacity-100"
+                        }`}
+                >
+                    <div className="text-xs text-neutral-500 font-medium">
                         MVP • lokalna baza
                     </div>
-                ) : null}
+                </div>
             </div>
         </aside>
     );
 }
-
-const s: Record<string, React.CSSProperties> = {
-    sidebar: {
-        height: "100vh",
-        position: "sticky",
-        top: 0,
-        borderRight: "1px solid #eee",
-        background: "white",
-        display: "flex",
-        flexDirection: "column",
-        padding: 10,
-        boxSizing: "border-box",
-        transition: "width 400ms ease",
-    },
-    top: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "6px 6px 10px 6px",
-    },
-    brandDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 999,
-        background: "#111",
-        flex: "0 0 auto",
-    },
-    iconBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 12,
-        border: "1px solid #ddd",
-        background: "#f7f7f7",
-        display: "grid",
-        placeItems: "center",
-        cursor: "pointer",
-        flex: "0 0 auto",
-    },
-    nav: {
-        display: "grid",
-        gap: 6,
-        paddingTop: 6,
-    },
-    link: {
-        textDecoration: "none",
-        color: "#111",
-        borderRadius: 14,
-        padding: "10px 10px",
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        minHeight: 44,
-        userSelect: "none",
-    },
-    linkActive: {
-        background: "#f2f2f2",
-        borderColor: "#e5e5e5",
-    },
-    iconWrap: {
-        width: 22,
-        height: 22,
-        display: "grid",
-        placeItems: "center",
-        flex: "0 0 auto",
-    },
-    linkText: {
-        fontWeight: 800,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    },
-    bottom: {
-        marginTop: "auto",
-        padding: "10px 6px 6px 6px",
-    },
-};
 
 // --- minimalistyczne SVG ikony (bez bibliotek) ---
 function IconHome() {

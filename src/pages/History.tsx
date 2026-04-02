@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect } from "react";
 import { useSupaDB } from "../state/SupabaseDBContext";
 import { displayName, endOfTodayYMD, startOfPrevMonthYMD, endOfPrevMonthYMD, monthKey, prevMonthKey, startOfMonthYMD, } from "../state/db";
 import { type PeriodFilter, type TypeFilter, type StockMovement } from "../state/db";
-// import { monthFromYMD } from "../state/logic";
 
 export default function History() {
     const { products, podologists, fetchMovements } = useSupaDB();
@@ -13,10 +12,8 @@ export default function History() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-
     const currentMonth = monthKey();
     const previousMonth = prevMonthKey(currentMonth);
-
 
     const range = useMemo(() => {
         const now = new Date();
@@ -62,23 +59,31 @@ export default function History() {
         };
     }, [fetchMovements, range.from, range.to, type, podologist]);
 
-
     return (
-        <section style={{ padding: 16, border: "1px solid #e5e5e5", borderRadius: 16 }}>
-            <h2 style={{ marginTop: 0 }}>Historia</h2>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-                <label style={filterLabel}>
-                    <span style={filterText}>Okres</span>
-                    <select value={period} onChange={(e) => setPeriod(e.target.value as PeriodFilter)} style={sel}>
+        <section className="p-4 border border-neutral-200 rounded-2xl bg-white shadow-sm">
+            <h2 className="mt-0 mb-4 text-2xl font-black text-neutral-800">Historia</h2>
+
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+                <label className="grid gap-1.5">
+                    <span className="text-xs text-neutral-500 font-extrabold">Okres</span>
+                    <select
+                        value={period}
+                        onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
+                        className="px-3 py-2 rounded-xl border border-neutral-300 bg-white outline-none focus:border-blue-500 transition-colors"
+                    >
                         <option value="CURRENT">Bieżący miesiąc ({currentMonth})</option>
                         <option value="PREVIOUS">Poprzedni miesiąc ({previousMonth})</option>
                         <option value="ALL">Cała historia</option>
                     </select>
                 </label>
 
-                <label style={filterLabel}>
-                    <span style={filterText}>Typ</span>
-                    <select value={type} onChange={(e) => setType(e.target.value as TypeFilter)} style={sel}>
+                <label className="grid gap-1.5">
+                    <span className="text-xs text-neutral-500 font-extrabold">Typ</span>
+                    <select
+                        value={type}
+                        onChange={(e) => setType(e.target.value as TypeFilter)}
+                        className="px-3 py-2 rounded-xl border border-neutral-300 bg-white outline-none focus:border-blue-500 transition-colors"
+                    >
                         <option value="ALL">Wszystkie</option>
                         <option value="CLINIC">Gabinet</option>
                         <option value="SALE">Sprzedaż</option>
@@ -87,9 +92,13 @@ export default function History() {
                     </select>
                 </label>
 
-                <label style={filterLabel}>
-                    <span style={filterText}>Podolog</span>
-                    <select value={podologist} onChange={(e) => setPodologist(e.target.value)} style={sel}>
+                <label className="grid gap-1.5">
+                    <span className="text-xs text-neutral-500 font-extrabold">Podolog</span>
+                    <select
+                        value={podologist}
+                        onChange={(e) => setPodologist(e.target.value)}
+                        className="px-3 py-2 rounded-xl border border-neutral-300 bg-white outline-none focus:border-blue-500 transition-colors"
+                    >
                         <option value="ALL">Wszyscy</option>
                         {podologists.map((p) => (
                             <option key={p.id} value={p.name}>
@@ -99,27 +108,28 @@ export default function History() {
                     </select>
                 </label>
 
-                <div style={{ marginLeft: "auto", color: "#666", fontSize: 12 }}>
-                    Wyników: <b>{items.length}</b>
+                <div className="ml-auto text-xs text-neutral-500 font-bold self-center">
+                    Wyników: <b className="text-neutral-800">{items.length}</b>
                 </div>
             </div>
-            {error ? <div style={errorBox}>{error}</div> : null}
-            {loading ? (
-                <div style={{ color: "#666" }}>Ładowanie…</div>
-            ) : items.length === 0 ? (
-                <p style={{ color: "#555" }}>Brak ruchów.</p>
-            ) : (
-                <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                            <tr>
-                                <th style={th}>Data</th>
-                                <th style={th}>Typ</th>
-                                <th style={th}>Produkt</th>
-                                <th style={th}>Ilość</th>
-                                <th style={th}>Notatka</th>
-                                <th style={th}>Podolog</th>
 
+            {error ? <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-sm mb-4">{error}</div> : null}
+
+            {loading ? (
+                <div className="text-neutral-500 font-bold text-sm">Ładowanie…</div>
+            ) : items.length === 0 ? (
+                <p className="text-neutral-500 font-bold text-center py-4">Brak ruchów.</p>
+            ) : (
+                <div className="overflow-x-auto rounded-xl border border-neutral-200">
+                    <table className="w-full border-collapse text-sm">
+                        <thead className="bg-neutral-50">
+                            <tr>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Data</th>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Typ</th>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Produkt</th>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Ilość</th>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Notatka</th>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Podolog</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,13 +141,21 @@ export default function History() {
                                             m.type === "CLINIC" ? "Gabinet" :
                                                 "Korekta";
                                 return (
-                                    <tr key={m.id}>
-                                        <td style={td}>{m.occurred_at.split("-").reverse().join("-")}</td>
-                                        <td style={td}>{typeLabel}</td>
-                                        <td style={td}>{p ? displayName(p) : m.product_id}</td>
-                                        <td style={td}>{m.qty}</td>
-                                        <td style={td}>{m.note ?? "-"}</td>
-                                        <td style={td}>{(m.type === "SALE" || m.type === "CLINIC") ? (m.podologist_name ?? "-") : "-"}</td>
+                                    <tr key={m.id} className="hover:bg-neutral-50 transition-colors">
+                                        <td className="border-b border-neutral-100 p-3 text-neutral-800 font-medium">{m.occurred_at.split("-").reverse().join("-")}</td>
+                                        <td className="border-b border-neutral-100 p-3 text-neutral-800">
+                                            <span className={`inline-flex px-2 py-1 rounded-md text-xs font-bold ${m.type === 'IN' ? 'bg-green-100 text-green-800' :
+                                                    m.type === 'SALE' ? 'bg-blue-100 text-blue-800' :
+                                                        m.type === 'CLINIC' ? 'bg-purple-100 text-purple-800' :
+                                                            'bg-neutral-200 text-neutral-800'
+                                                }`}>
+                                                {typeLabel}
+                                            </span>
+                                        </td>
+                                        <td className="border-b border-neutral-100 p-3 text-neutral-900 font-bold">{p ? displayName(p) : m.product_id}</td>
+                                        <td className="border-b border-neutral-100 p-3 text-neutral-800 font-black">{m.qty}</td>
+                                        <td className="border-b border-neutral-100 p-3 text-neutral-600">{m.note ?? "-"}</td>
+                                        <td className="border-b border-neutral-100 p-3 text-neutral-800">{(m.type === "SALE" || m.type === "CLINIC") ? (m.podologist_name ?? "-") : "-"}</td>
                                     </tr>
                                 );
                             })}
@@ -148,18 +166,3 @@ export default function History() {
         </section>
     );
 }
-
-const sel: React.CSSProperties = { padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white" };
-const filterLabel: React.CSSProperties = { display: "grid", gap: 6 };
-const filterText: React.CSSProperties = { fontSize: 12, color: "#555", fontWeight: 800 };
-const th: React.CSSProperties = { textAlign: "left", borderBottom: "1px solid #eee", padding: "8px 6px" };
-const td: React.CSSProperties = { borderBottom: "1px solid #f2f2f2", padding: "8px 6px" };
-const errorBox: React.CSSProperties = {
-    padding: 10,
-    borderRadius: 12,
-    background: "#ffe8e8",
-    border: "1px solid #ffb3b3",
-    color: "#8a0000",
-    fontWeight: 800,
-    marginTop: 8,
-};
