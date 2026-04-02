@@ -100,11 +100,15 @@ export default function History() {
                         className="px-3 py-2 rounded-xl border border-neutral-300 bg-white outline-none focus:border-blue-500 transition-colors"
                     >
                         <option value="ALL">Wszyscy</option>
-                        {podologists.map((p) => (
-                            <option key={p.id} value={p.name}>
-                                {p.name}
-                            </option>
-                        ))}
+                        <optgroup label="Podolodzy">
+                            {podologists.map((p) => (
+                                <option key={p.id} value={p.name}>{p.name}</option>
+                            ))}
+                        </optgroup>
+                        <optgroup label="Gabinety">
+                            <option value="Gabinet 1">Gabinet 1</option>
+                            <option value="Gabinet 2">Gabinet 2</option>
+                        </optgroup>
                     </select>
                 </label>
 
@@ -129,8 +133,7 @@ export default function History() {
                                 <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Produkt</th>
                                 <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Ilość</th>
                                 <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Notatka</th>
-                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Podolog</th>
-                            </tr>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Podolog / Gabinet</th>                            </tr>
                         </thead>
                         <tbody>
                             {items.map((m) => {
@@ -145,9 +148,9 @@ export default function History() {
                                         <td className="border-b border-neutral-100 p-3 text-neutral-800 font-medium">{m.occurred_at.split("-").reverse().join("-")}</td>
                                         <td className="border-b border-neutral-100 p-3 text-neutral-800">
                                             <span className={`inline-flex px-2 py-1 rounded-md text-xs font-bold ${m.type === 'IN' ? 'bg-green-100 text-green-800' :
-                                                    m.type === 'SALE' ? 'bg-blue-100 text-blue-800' :
-                                                        m.type === 'CLINIC' ? 'bg-purple-100 text-purple-800' :
-                                                            'bg-neutral-200 text-neutral-800'
+                                                m.type === 'SALE' ? 'bg-blue-100 text-blue-800' :
+                                                    m.type === 'CLINIC' ? 'bg-purple-100 text-purple-800' :
+                                                        'bg-neutral-200 text-neutral-800'
                                                 }`}>
                                                 {typeLabel}
                                             </span>

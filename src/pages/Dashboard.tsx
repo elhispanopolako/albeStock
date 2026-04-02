@@ -170,7 +170,7 @@ export default function Dashboard() {
                             <table className="w-full border-collapse text-sm">
                                 <thead className="bg-white">
                                     <tr>
-                                        <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600">Podolog</th>
+                                        <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600">Podolog / Gabinet</th>
                                         <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600">Sprzedaż</th>
                                         <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600">Gabinet</th>
                                         <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600">Razem</th>

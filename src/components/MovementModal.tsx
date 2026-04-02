@@ -3,6 +3,9 @@ import { type MovementType, type Product, displayName } from "../state/db";
 import { todayYMD, isInCurrentMonth, startOfMonthYMD, isNotFutureYMD } from "../state/logic";
 import { useSupaDB } from "../state/SupabaseDBContext";
 
+// Definiujemy gabinety na potrzeby MVP:
+const ROOMS = ["Gabinet 1", "Gabinet 2"];
+
 type Props = {
     open: boolean;
     onClose: () => void;
@@ -19,50 +22,59 @@ export default function MovementModal({ open, onClose, products, defaultProductI
     const [qty, setQty] = useState<string>("");
     const [note, setNote] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const [podologist, setPodologist] = useState<string>("");
-    const showPodologist = mode === "SALE" || mode === "CLINIC"; // wymagany zawsze
-    const showTypeSelect = mode === "SUPPLY";
     const [occurredAt, setOccurredAt] = useState<string>(todayYMD());
+
+    // Wspólny stan dla wyboru Podologa lub Gabinetu
+    const [target, setTarget] = useState<string>("");
+
+    const selected = useMemo(() => products.find((p) => p.id === productId), [products, productId]);
+
+    const showTypeSelect = mode === "SUPPLY";
+    const isSale = type === "SALE";
+    const isClinic = type === "CLINIC";
+
+    // --- NOWA LOGIKA BIZNESOWA ---
+    // Pokazujemy Podologa jeśli to Sprzedaż LUB jeśli to Zużycie, ale produkt NIE JEST materiałem gabinetowym
+    const showPodologist = isSale || (isClinic && selected && !selected.is_clinic_only);
+    // Pokazujemy Gabinet TYLKO jeśli to Zużycie I produkt JEST materiałem gabinetowym
+    const showRoom = isClinic && selected && selected.is_clinic_only;
 
     useEffect(() => {
         if (!open) return;
         setProductId(defaultProductId ?? products[0]?.id ?? "");
-        setType("SALE");
+        setType(mode === "SUPPLY" ? "IN" : mode);
         setQty("1");
         setNote("");
         setError(null);
-
-        if (mode === "SALE") setType("SALE");
-        if (mode === "CLINIC") setType("CLINIC");
-        if (mode === "SUPPLY") setType("IN")
-        setPodologist("");
+        setTarget("");
         setOccurredAt(todayYMD());
-    }, [open, defaultProductId, products]);
-
-    const selected = useMemo(() => products.find((p) => p.id === productId), [products, productId]);
+    }, [open, defaultProductId, products, mode]);
 
     if (!open) return null;
 
-    const title = type === "IN" ? "Dostawa" : type === "SALE" ? "Sprzedaż" : type === "CLINIC" ? "Zużycie w gabinecie" : "Korekta (ustaw stan)";
+    const title = type === "IN" ? "Dostawa" : type === "SALE" ? "Sprzedaż" : type === "CLINIC" ? "Zużycie" : "Korekta (ustaw stan)";
 
     const submit = () => {
         setError(null);
 
         if (!productId) return setError("Wybierz produkt.");
-        let qtyNumber = Number(qty)
+        let qtyNumber = Number(qty);
         if (!Number.isFinite(qtyNumber) || qtyNumber <= 0) return setError("Ilość musi być > 0.");
 
-        if ((type === "SALE" || type === "CLINIC") && selected && selected.stock - qtyNumber < 0) {
+        if ((isSale || isClinic) && selected && selected.stock - qtyNumber < 0) {
             return setError("Brak wystarczającego stanu (nie można zejść poniżej zera).");
         }
-        if ((type === "SALE" || type === "CLINIC") && !podologist) return setError("Wybierz podologa.");
+
+        // Dynamiczna walidacja
+        if (showPodologist && !target) return setError("Wybierz podologa.");
+        if (showRoom && !target) return setError("Wybierz gabinet.");
 
         if (type === "ADJUST" && note.trim().length < 3) {
             return setError("Podaj powód korekty (min. 3 znaki).");
         }
         if (!occurredAt) return setError("Wybierz datę zdarzenia.");
         if (!isInCurrentMonth(occurredAt)) return setError("Można dodawać ruchy tylko w bieżącym miesiącu.");
-        if (!isNotFutureYMD(occurredAt)) return setError("Brak możliwości dodania daty przyszłej")
+        if (!isNotFutureYMD(occurredAt)) return setError("Brak możliwości dodania daty przyszłej");
 
         onSubmit({
             productId,
@@ -70,7 +82,7 @@ export default function MovementModal({ open, onClose, products, defaultProductI
             qty: Math.floor(qtyNumber),
             note: note.trim() ? note.trim() : undefined,
             occurredAt,
-            ...((type === "SALE" || type === "CLINIC") ? { podologist } : {})
+            ...((isSale || isClinic) ? { podologist: target } : {})
         });
 
         onClose();
@@ -104,23 +116,40 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                         </label>
                     ) : null}
 
+                    {/* DYNAMICZNY WYBÓR: PODOLOG */}
                     {showPodologist ? (
                         <label className="grid gap-1.5">
                             <span className="text-xs text-neutral-500 font-bold">Podolog</span>
-                            <select value={podologist} onChange={(e) => setPodologist(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
+                            <select value={target} onChange={(e) => setTarget(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                                 <option value="">Wybierz podologa</option>
                                 {podologists.map((p) => (
-                                    <option key={p.id} value={p.name}>
-                                        {p.name}
-                                    </option>
+                                    <option key={p.id} value={p.name}>{p.name}</option>
+                                ))}
+                            </select>
+                        </label>
+                    ) : null}
+
+                    {/* DYNAMICZNY WYBÓR: GABINET */}
+                    {showRoom ? (
+                        <label className="grid gap-1.5">
+                            <span className="text-xs text-neutral-500 font-bold">Gabinet</span>
+                            <select value={target} onChange={(e) => setTarget(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
+                                <option value="">Wybierz gabinet</option>
+                                {ROOMS.map((room) => (
+                                    <option key={room} value={room}>{room}</option>
                                 ))}
                             </select>
                         </label>
                     ) : null}
 
                     <label className="grid gap-1.5">
-                        <span className="text-xs text-neutral-500 font-bold">Produkt</span>
-                        <select value={productId} onChange={(e) => setProductId(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
+                        <span className="text-xs text-neutral-500 font-bold">
+                            {selected?.is_clinic_only ? "Materiał" : "Produkt"}
+                        </span>
+                        <select value={productId} onChange={(e) => {
+                            setProductId(e.target.value);
+                            setTarget(""); // Resetujemy wybór, bo mógł się zmienić tryb (Podolog <-> Gabinet)
+                        }} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                             {products.map((p) => (
                                 <option key={p.id} value={p.id}>
                                     {p.is_clinic_only
