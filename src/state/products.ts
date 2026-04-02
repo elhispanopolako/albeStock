@@ -11,6 +11,7 @@ export function addProduct(
         size?: string;
         stock: number;
         minLevel: number;
+        isClinicOnly?: boolean;
     }
 ): DB {
     const p: Product = {
@@ -24,6 +25,7 @@ export function addProduct(
         min_level: Math.max(0, Math.floor(input.minLevel)),
         created_at: nowISO(),
         updated_at: nowISO(),
+        is_clinic_only: input.isClinicOnly ?? false,
     };
 
 
