@@ -46,6 +46,7 @@ type Ctx = {
         size?: string;
         stock: number;
         minLevel: number;
+        isClinicOnly?: boolean;
     }) => Promise<void>;
 
     editProduct: (args: {
@@ -55,6 +56,7 @@ type Ctx = {
         productType: ProductType;
         size?: string;
         minLevel: number;
+        isClinicOnly?: boolean;
     }) => Promise<void>;
 };
 
@@ -142,6 +144,7 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
         size?: string;
         stock: number;
         minLevel: number;
+        isClinicOnly?: boolean;
     }) => {
         const { error } = await supabase.from("products").insert({
             producer: args.producer,
@@ -151,6 +154,7 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
             unit: "szt",
             stock: Math.max(0, Math.floor(args.stock)),
             min_level: Math.max(0, Math.floor(args.minLevel)),
+            is_clinic_only: args.isClinicOnly ?? false,
         });
         if (error) throw error;
         await refreshAll();
@@ -163,6 +167,7 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
         productType: ProductType;
         size?: string;
         minLevel: number;
+        isClinicOnly?: boolean;
     }) => {
         const { error } = await supabase
             .from("products")
@@ -172,6 +177,7 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
                 product_type: args.productType.trim(),
                 size: args.size?.trim() ? args.size.trim() : null,
                 min_level: Math.max(0, Math.floor(args.minLevel)),
+                is_clinic_only: args.isClinicOnly ?? false,
             })
             .eq("id", args.id);
 

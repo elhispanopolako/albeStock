@@ -2,7 +2,7 @@
 
 export type Unit = "szt";
 
-export type Producer = "Podopharm" | "Epione" | "Podoland";
+export type Producer = "Podopharm" | "Epione" | "Podoland" | "Brak";
 export type MovementType = "IN" | "SALE" | "CLINIC" | "ADJUST";
 export type ProductType =
     | "spray"
@@ -29,6 +29,7 @@ export type Product = {
     min_level: number;
     created_at: string;
     updated_at: string;
+    is_clinic_only: boolean;
 };
 export type MonthlySnapshot = {
     month: string; // np. "2026-01"

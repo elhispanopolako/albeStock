@@ -123,7 +123,9 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                         <select value={productId} onChange={(e) => setProductId(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                             {products.map((p) => (
                                 <option key={p.id} value={p.id}>
-                                    {p.producer} — {displayName(p)}
+                                    {p.is_clinic_only
+                                        ? displayName(p)
+                                        : `${p.producer} — ${displayName(p)}`}
                                 </option>
                             ))}
                         </select>

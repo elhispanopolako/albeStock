@@ -6,6 +6,7 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import History from "./pages/History";
+import Supplies from "./pages/Supplies";
 
 const SIDEBAR_KEY = "mvp_sidebar_collapsed";
 
@@ -53,6 +54,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/supplies" element={<Supplies />} />
             <Route path="/history" element={<History />} />
           </Routes>
         </div>

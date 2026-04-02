@@ -12,6 +12,7 @@ type Props = {
         productType: ProductType;
         size?: string;
         minLevel: number;
+        isClinicOnly?: boolean;
     }) => void;
 };
 
@@ -22,7 +23,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
     const [size, setSize] = useState("");
     const [minLevel, setMinLevel] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
-
+    const isClinicOnly = product?.is_clinic_only ?? false
     useEffect(() => {
         if (!open || !product) return;
         setProducer(product.producer);
@@ -43,11 +44,12 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
 
         onSubmit({
             id: product.id,
-            producer,
+            producer: isClinicOnly ? "Brak" : producer,
             name: name.trim(),
             productType,
             size: size.trim() ? size.trim() : undefined,
             minLevel: Math.floor(minLevelNumber),
+            isClinicOnly: isClinicOnly,
         });
         onClose();
     };
@@ -63,14 +65,16 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
                 </div>
 
                 <div className="p-4 grid gap-3">
-                    <label className="grid gap-1.5">
-                        <span className="text-xs text-neutral-500 font-bold">Producent</span>
-                        <select value={producer} onChange={(e) => setProducer(e.target.value as Producer)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
-                            <option value="Podopharm">Podopharm</option>
-                            <option value="Epione">Epione</option>
-                            <option value="Podoland">Podoland</option>
-                        </select>
-                    </label>
+                    {!isClinicOnly ? (
+                        <label className="grid gap-1.5">
+                            <span className="text-xs text-neutral-500 font-bold">Producent</span>
+                            <select value={producer} onChange={(e) => setProducer(e.target.value as Producer)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
+                                <option value="Podopharm">Podopharm</option>
+                                <option value="Epione">Epione</option>
+                                <option value="Podoland">Podoland</option>
+                            </select>
+                        </label>
+                    ) : null}
 
                     <label className="grid gap-1.5">
                         <span className="text-xs text-neutral-500 font-bold">Nazwa</span>

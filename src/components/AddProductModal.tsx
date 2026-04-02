@@ -6,6 +6,7 @@ const ZERO = "0";
 type Props = {
     open: boolean;
     onClose: () => void;
+    isClinicOnly?: boolean;
     onSubmit: (args: {
         producer: Producer;
         name: string;
@@ -13,10 +14,11 @@ type Props = {
         size?: string;
         stock: number;
         minLevel: number;
+        isClinicOnly?: boolean;
     }) => void;
 };
 
-export default function AddProductModal({ open, onClose, onSubmit }: Props) {
+export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit }: Props) {
     const [producer, setProducer] = useState<Producer>("Podopharm");
     const [name, setName] = useState("");
     const [productType, setProductType] = useState<ProductType>("inne");
@@ -47,12 +49,13 @@ export default function AddProductModal({ open, onClose, onSubmit }: Props) {
         if (minLevelNumber < 0 || !Number.isFinite(minLevelNumber)) return setError("Minimum musi być ≥ 0.");
 
         onSubmit({
-            producer,
+            producer: isClinicOnly ? "Brak" : producer,
             name: name.trim(),
             productType,
             size: size.trim() ? size.trim() : undefined,
             stock: Math.floor(stockNumber),
             minLevel: Math.floor(minLevelNumber),
+            isClinicOnly,
         });
         onClose();
     };
@@ -68,14 +71,16 @@ export default function AddProductModal({ open, onClose, onSubmit }: Props) {
                 </div>
 
                 <div className="p-4 grid gap-3">
-                    <label className="grid gap-1.5">
-                        <span className="text-xs text-neutral-500 font-bold">Producent</span>
-                        <select value={producer} onChange={(e) => setProducer(e.target.value as Producer)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
-                            <option value="Podopharm">Podopharm</option>
-                            <option value="Epione">Epione</option>
-                            <option value="Podoland">Podoland</option>
-                        </select>
-                    </label>
+                    {!isClinicOnly ? (
+                        <label className="grid gap-1.5">
+                            <span className="text-xs text-neutral-500 font-bold">Producent</span>
+                            <select value={producer} onChange={(e) => setProducer(e.target.value as Producer)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
+                                <option value="Podopharm">Podopharm</option>
+                                <option value="Epione">Epione</option>
+                                <option value="Podoland">Podoland</option>
+                            </select>
+                        </label>
+                    ) : null}
 
                     <label className="grid gap-1.5">
                         <span className="text-xs text-neutral-500 font-bold">Nazwa</span>
