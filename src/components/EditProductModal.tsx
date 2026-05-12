@@ -72,6 +72,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
                                 <option value="Podopharm">Podopharm</option>
                                 <option value="Epione">Epione</option>
                                 <option value="Podoland">Podoland</option>
+                                <option value="Procarexpert">Procarexpert</option>
                             </select>
                         </label>
                     ) : null}

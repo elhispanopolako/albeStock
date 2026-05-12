@@ -78,6 +78,7 @@ export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit 
                                 <option value="Podopharm">Podopharm</option>
                                 <option value="Epione">Epione</option>
                                 <option value="Podoland">Podoland</option>
+                                <option value="Procarexpert">Procarexpert</option>
                             </select>
                         </label>
                     ) : null}

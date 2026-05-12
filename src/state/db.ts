@@ -2,7 +2,7 @@
 
 export type Unit = "szt";
 
-export type Producer = "Podopharm" | "Epione" | "Podoland" | "Brak";
+export type Producer = "Podopharm" | "Epione" | "Podoland" | "Procarexpert" | "Brak";
 export type MovementType = "IN" | "SALE" | "CLINIC" | "ADJUST";
 export type ProductType =
     | "spray"

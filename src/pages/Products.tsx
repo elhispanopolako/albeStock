@@ -64,6 +64,7 @@ export default function Products() {
                     <option value="Podopharm">Podopharm</option>
                     <option value="Epione">Epione</option>
                     <option value="Podoland">Podoland</option>
+                    <option value="Procarexpert">Procarexpert</option>
                 </select>
 
                 <select value={ptype} onChange={(e) => setPtype(e.target.value as any)} className="px-3 py-2 rounded-xl border border-neutral-300 bg-white outline-none focus:border-blue-500 transition-colors">
