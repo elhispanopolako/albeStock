@@ -13,7 +13,7 @@ type Props = {
         size?: string;
         minLevel: number;
         isClinicOnly?: boolean;
-    }) => void;
+    }) => Promise<void>;
 };
 
 export default function EditProductModal({ open, onClose, product, onSubmit }: Props) {
@@ -23,6 +23,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
     const [size, setSize] = useState("");
     const [minLevel, setMinLevel] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
     const isClinicOnly = product?.is_clinic_only ?? false
     useEffect(() => {
         if (!open || !product) return;
@@ -36,22 +37,30 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
 
     if (!open || !product) return null;
 
-    const submit = () => {
+    const submit = async () => {
+        if (saving) return;
         setError(null);
         let minLevelNumber = Number(minLevel);
         if (!name.trim()) return setError("Podaj nazwę produktu.");
         if (!Number.isFinite(minLevelNumber) || minLevelNumber < 0) return setError("Minimum musi być ≥ 0.");
 
-        onSubmit({
-            id: product.id,
-            producer: isClinicOnly ? "Brak" : producer,
-            name: name.trim(),
-            productType,
-            size: size.trim() ? size.trim() : undefined,
-            minLevel: Math.floor(minLevelNumber),
-            isClinicOnly: isClinicOnly,
-        });
-        onClose();
+        setSaving(true);
+        try {
+            await onSubmit({
+                id: product.id,
+                producer: isClinicOnly ? "Brak" : producer,
+                name: name.trim(),
+                productType,
+                size: size.trim() ? size.trim() : undefined,
+                minLevel: Math.floor(minLevelNumber),
+                isClinicOnly: isClinicOnly,
+            });
+            onClose();
+        } catch (e: any) {
+            setError(e?.message ?? "Nie udało się zapisać.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -114,8 +123,8 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
                         <button onClick={onClose} className="px-4 py-2 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-900 font-extrabold hover:bg-neutral-200 transition-colors">
                             Anuluj
                         </button>
-                        <button onClick={submit} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors">
-                            Zapisz
+                        <button onClick={submit} disabled={saving} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {saving ? "Zapisywanie…" : "Zapisz"}
                         </button>
                     </div>
                 </div>

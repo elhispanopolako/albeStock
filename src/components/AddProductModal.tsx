@@ -15,7 +15,7 @@ type Props = {
         stock: number;
         minLevel: number;
         isClinicOnly?: boolean;
-    }) => void;
+    }) => Promise<void>;
 };
 
 export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit }: Props) {
@@ -26,6 +26,7 @@ export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit 
     const [stock, setStock] = useState<string>(ZERO);
     const [minLevel, setMinLevel] = useState<string>(ZERO);
     const [error, setError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!open) return;
@@ -40,7 +41,8 @@ export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit 
 
     if (!open) return null;
 
-    const submit = () => {
+    const submit = async () => {
+        if (saving) return;
         setError(null);
         if (!name.trim()) return setError("Podaj nazwę produktu.");
         let stockNumber = Number(stock);
@@ -48,16 +50,23 @@ export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit 
         if (stockNumber < 0 || !Number.isFinite(stockNumber)) return setError("Stan początkowy musi być ≥ 0.");
         if (minLevelNumber < 0 || !Number.isFinite(minLevelNumber)) return setError("Minimum musi być ≥ 0.");
 
-        onSubmit({
-            producer: isClinicOnly ? "Brak" : producer,
-            name: name.trim(),
-            productType,
-            size: size.trim() ? size.trim() : undefined,
-            stock: Math.floor(stockNumber),
-            minLevel: Math.floor(minLevelNumber),
-            isClinicOnly,
-        });
-        onClose();
+        setSaving(true);
+        try {
+            await onSubmit({
+                producer: isClinicOnly ? "Brak" : producer,
+                name: name.trim(),
+                productType,
+                size: size.trim() ? size.trim() : undefined,
+                stock: Math.floor(stockNumber),
+                minLevel: Math.floor(minLevelNumber),
+                isClinicOnly,
+            });
+            onClose();
+        } catch (e: any) {
+            setError(e?.message ?? "Nie udało się zapisać.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -127,8 +136,8 @@ export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit 
                         <button onClick={onClose} className="px-4 py-2 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-900 font-extrabold hover:bg-neutral-200 transition-colors">
                             Anuluj
                         </button>
-                        <button onClick={submit} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors">
-                            Dodaj
+                        <button onClick={submit} disabled={saving} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {saving ? "Dodawanie…" : "Dodaj"}
                         </button>
                     </div>
                 </div>

@@ -12,7 +12,7 @@ type Props = {
     products: Product[];
     defaultProductId?: string;
     mode: "SALE" | "CLINIC" | "SUPPLY";
-    onSubmit: (args: { productId: string; type: MovementType; qty: number; note?: string; occurredAt: string, podologist?: string }) => void;
+    onSubmit: (args: { productId: string; type: MovementType; qty: number; note?: string; occurredAt: string, podologist?: string }) => Promise<void>;
 };
 
 export default function MovementModal({ open, onClose, products, defaultProductId, mode, onSubmit }: Props) {
@@ -22,6 +22,7 @@ export default function MovementModal({ open, onClose, products, defaultProductI
     const [qty, setQty] = useState<string>("");
     const [note, setNote] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
     const [occurredAt, setOccurredAt] = useState<string>(todayYMD());
 
     // Wspólny stan dla wyboru Podologa lub Gabinetu
@@ -54,12 +55,18 @@ export default function MovementModal({ open, onClose, products, defaultProductI
 
     const title = type === "IN" ? "Dostawa" : type === "SALE" ? "Sprzedaż" : type === "CLINIC" ? "Zużycie" : "Korekta (ustaw stan)";
 
-    const submit = () => {
+    const submit = async () => {
+        if (saving) return;
         setError(null);
 
         if (!productId) return setError("Wybierz produkt.");
         let qtyNumber = Number(qty);
-        if (!Number.isFinite(qtyNumber) || qtyNumber <= 0) return setError("Ilość musi być > 0.");
+        // korekta ustawia stan, więc 0 jest poprawne
+        if (type === "ADJUST") {
+            if (!qty.trim() || !Number.isFinite(qtyNumber) || qtyNumber < 0) return setError("Stan musi być ≥ 0.");
+        } else if (!Number.isFinite(qtyNumber) || qtyNumber <= 0) {
+            return setError("Ilość musi być > 0.");
+        }
 
         if ((isSale || isClinic) && selected && selected.stock - qtyNumber < 0) {
             return setError("Brak wystarczającego stanu (nie można zejść poniżej zera).");
@@ -76,16 +83,22 @@ export default function MovementModal({ open, onClose, products, defaultProductI
         if (!isInCurrentMonth(occurredAt)) return setError("Można dodawać ruchy tylko w bieżącym miesiącu.");
         if (!isNotFutureYMD(occurredAt)) return setError("Brak możliwości dodania daty przyszłej");
 
-        onSubmit({
-            productId,
-            type,
-            qty: Math.floor(qtyNumber),
-            note: note.trim() ? note.trim() : undefined,
-            occurredAt,
-            ...((isSale || isClinic) ? { podologist: target } : {})
-        });
-
-        onClose();
+        setSaving(true);
+        try {
+            await onSubmit({
+                productId,
+                type,
+                qty: Math.floor(qtyNumber),
+                note: note.trim() ? note.trim() : undefined,
+                occurredAt,
+                ...((isSale || isClinic) ? { podologist: target } : {})
+            });
+            onClose();
+        } catch (e: any) {
+            setError(e?.message ?? "Nie udało się zapisać.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -204,8 +217,8 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                         <button onClick={onClose} className="px-4 py-2 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-900 font-extrabold hover:bg-neutral-200 transition-colors">
                             Anuluj
                         </button>
-                        <button onClick={submit} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors">
-                            Zapisz
+                        <button onClick={submit} disabled={saving} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {saving ? "Zapisywanie…" : "Zapisz"}
                         </button>
                     </div>
                 </div>

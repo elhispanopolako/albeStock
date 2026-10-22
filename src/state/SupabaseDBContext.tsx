@@ -88,8 +88,23 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
         setSnapshots(s.data as any);
     };
 
+    // dane ładujemy dopiero po zalogowaniu, a przy wylogowaniu czyścimy
     useEffect(() => {
-        refreshAll().catch(() => { });
+        const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === "SIGNED_OUT" || !session) {
+                setProducts([]);
+                setPodologists([]);
+                setSnapshots([]);
+                return;
+            }
+            if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+                // setTimeout: nie wolno czekać na zapytania supabase wewnątrz callbacka auth (deadlock)
+                setTimeout(() => {
+                    refreshAll().catch((e) => console.error("Błąd ładowania danych:", e));
+                }, 0);
+            }
+        });
+        return () => sub.subscription.unsubscribe();
     }, []);
 
     const fetchMovements = async (args: {

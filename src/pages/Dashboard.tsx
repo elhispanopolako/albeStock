@@ -99,10 +99,11 @@ export default function Dashboard() {
 
                 return { p, startVal, endVal, diff };
             })
+            // największy rozchód (najbardziej ujemna różnica) na górze, brak danych na końcu
             .sort((a, b) => {
-                const da = a.diff == null ? -Infinity : a.diff;
-                const db = b.diff == null ? -Infinity : b.diff;
-                return db - da;
+                const da = a.diff == null ? Infinity : a.diff;
+                const db = b.diff == null ? Infinity : b.diff;
+                return da - db;
             });
     }, [products, snap]);
 
@@ -212,7 +213,7 @@ export default function Dashboard() {
                                         <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600 whitespace-nowrap">Produkt</th>
                                         <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600 whitespace-nowrap">Start</th>
                                         <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600 whitespace-nowrap">{isClosed ? "Koniec" : "Aktualny"}</th>
-                                        <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600 whitespace-nowrap">Różnica (start - koniec)</th>
+                                        <th className="text-left border-b border-neutral-200 p-2.5 font-bold text-neutral-600 whitespace-nowrap">Różnica ({isClosed ? "koniec" : "aktualny"} - start)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
