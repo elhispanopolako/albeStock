@@ -35,6 +35,12 @@ export type MovementArgs = {
     note?: string;
 };
 
+export type DeliveryArgs = {
+    occurredAt: string; // YYYY-MM-DD
+    note?: string;
+    items: { productId: string; qty: number }[];
+};
+
 type Ctx = {
     // produkty ze stanem i minimum dla bieżącej lokalizacji
     products: Product[];
@@ -58,6 +64,7 @@ type Ctx = {
     }) => Promise<StockMovement[]>;
 
     applyMovement: (args: MovementArgs) => Promise<void>;
+    applyDelivery: (args: DeliveryArgs) => Promise<void>;
 
     addProduct: (args: {
         producer: Producer;
@@ -246,6 +253,17 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
         await refreshAll();
     };
 
+    const applyDelivery = async (args: DeliveryArgs) => {
+        const { error } = await supabase.rpc("apply_delivery", {
+            p_location_id: requireLocation(),
+            p_occurred_at: args.occurredAt,
+            p_items: args.items.map((i) => ({ product_id: i.productId, qty: i.qty })),
+            p_note: args.note ?? null,
+        });
+        if (error) throw error;
+        await refreshAll();
+    };
+
     const addProduct = async (args: {
         producer: Producer;
         name: string;
@@ -336,7 +354,7 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
     const value = useMemo(
         () => ({
             products, podologists, snapshots, locations, allRooms, rooms, currentLocationId, setCurrentLocationId,
-            refreshAll, fetchMovements, applyMovement, addProduct, editProduct,
+            refreshAll, fetchMovements, applyMovement, applyDelivery, addProduct, editProduct,
             addLocation, renameLocation, addRoom, renameRoom, setRoomActive,
         }),
         // funkcje zależą tylko od currentLocationId i setterów stanu

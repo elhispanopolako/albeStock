@@ -8,12 +8,14 @@ import Products from "./pages/Products";
 import History from "./pages/History";
 import Supplies from "./pages/Supplies";
 import Locations from "./pages/Locations";
+import DeliveryModal from "./components/DeliveryModal";
 import { useSupaDB } from "./state/SupabaseDBContext";
 
 const SIDEBAR_KEY = "mvp_sidebar_collapsed";
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
+  const [deliveryOpen, setDeliveryOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       const raw = localStorage.getItem(SIDEBAR_KEY);
@@ -45,6 +47,12 @@ export default function App() {
         <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
           <div className="font-black text-lg">Magazyn podologiczny</div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDeliveryOpen(true)}
+              className="px-3 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold shadow-sm hover:bg-black transition-colors"
+            >
+              Przyjmij dostawę
+            </button>
             <LocationSwitcher />
             <button
               onClick={() => supabase.auth.signOut()}
@@ -65,6 +73,8 @@ export default function App() {
           </Routes>
         </div>
       </main>
+
+      <DeliveryModal open={deliveryOpen} onClose={() => setDeliveryOpen(false)} />
     </div>
   );
 }
