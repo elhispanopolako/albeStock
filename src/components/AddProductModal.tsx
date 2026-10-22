@@ -120,12 +120,12 @@ export default function AddProductModal({ open, onClose, isClinicOnly, onSubmit 
 
                     <div className="grid grid-cols-2 gap-3">
                         <label className="grid gap-1.5">
-                            <span className="text-xs text-neutral-500 font-bold">Stan początkowy (szt.)</span>
+                            <span className="text-xs text-neutral-500 font-bold">Stan początkowy w bieżącej lokalizacji (szt.)</span>
                             <input type="text" inputMode="numeric" pattern="[0-9]*" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 transition-colors" />
                         </label>
 
                         <label className="grid gap-1.5">
-                            <span className="text-xs text-neutral-500 font-bold">Minimum (alert)</span>
+                            <span className="text-xs text-neutral-500 font-bold">Minimum w bieżącej lokalizacji (alert)</span>
                             <input type="text" inputMode="numeric" pattern="[0-9]*" value={minLevel} onChange={(e) => setMinLevel(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 transition-colors" />
                         </label>
                     </div>

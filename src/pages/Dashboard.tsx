@@ -61,12 +61,10 @@ export default function Dashboard() {
     }, [fetchMovements, selectedMonth]);
 
     const summary = useMemo(() => {
-        const s = { SALE: 0, CLINIC: 0, IN: 0, ADJUST: 0 };
+        const s = { SALE: 0, CLINIC: 0, IN: 0, ADJUST: 0, TRANSFER_OUT: 0, TRANSFER_IN: 0 };
         for (const m of movements) {
-            if (m.type === "SALE") s.SALE += m.qty;
-            else if (m.type === "CLINIC") s.CLINIC += m.qty;
-            else if (m.type === "IN") s.IN += m.qty;
-            else s.ADJUST += 1; // korekty liczone jako liczba operacji
+            if (m.type === "ADJUST") s.ADJUST += 1; // korekty liczone jako liczba operacji
+            else s[m.type] += m.qty;
         }
         return s;
     }, [movements]);
@@ -157,6 +155,8 @@ export default function Dashboard() {
                         <li><b className="text-neutral-900">Sprzedaż:</b> {summary.SALE} szt</li>
                         <li><b className="text-neutral-900">Zużycie w gabinecie:</b> {summary.CLINIC} szt</li>
                         <li><b className="text-neutral-900">Dostawy:</b> {summary.IN} szt</li>
+                        <li><b className="text-neutral-900">Przesunięcia przyjęte:</b> {summary.TRANSFER_IN} szt</li>
+                        <li><b className="text-neutral-900">Przesunięcia wydane:</b> {summary.TRANSFER_OUT} szt</li>
                         <li><b className="text-neutral-900">Korekty:</b> {summary.ADJUST} operacji</li>
                     </ul>
                 </div>

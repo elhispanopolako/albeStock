@@ -4,7 +4,10 @@ import { displayName, endOfTodayYMD, startOfPrevMonthYMD, endOfPrevMonthYMD, mon
 import { type PeriodFilter, type TypeFilter, type StockMovement } from "../state/db";
 
 export default function History() {
-    const { products, podologists, fetchMovements } = useSupaDB();
+    const { products, podologists, fetchMovements, locations, allRooms, currentLocationId } = useSupaDB();
+    // w filtrze także nieaktywne gabinety, żeby dało się przejrzeć ich historię
+    const locationRooms = allRooms.filter((r) => r.location_id === currentLocationId);
+    const locationName = (id: string | null) => locations.find((l) => l.id === id)?.name ?? "?";
     const [period, setPeriod] = useState<PeriodFilter>("CURRENT");
     const [podologist, setPodologist] = useState<string>("ALL");
     const [type, setType] = useState<TypeFilter>("ALL");
@@ -89,6 +92,8 @@ export default function History() {
                         <option value="SALE">Sprzedaż</option>
                         <option value="IN">Dostawa</option>
                         <option value="ADJUST">Korekta</option>
+                        <option value="TRANSFER_OUT">Przesunięcie (wydane)</option>
+                        <option value="TRANSFER_IN">Przesunięcie (przyjęte)</option>
                     </select>
                 </label>
 
@@ -106,8 +111,9 @@ export default function History() {
                             ))}
                         </optgroup>
                         <optgroup label="Gabinety">
-                            <option value="Gabinet 1">Gabinet 1</option>
-                            <option value="Gabinet 2">Gabinet 2</option>
+                            {locationRooms.map((r) => (
+                                <option key={r.id} value={r.name}>{r.name}{r.active ? "" : " (nieaktywny)"}</option>
+                            ))}
                         </optgroup>
                     </select>
                 </label>
@@ -133,7 +139,8 @@ export default function History() {
                                 <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Produkt</th>
                                 <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Ilość</th>
                                 <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Notatka</th>
-                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Podolog / Gabinet</th>                            </tr>
+                                <th className="text-left border-b border-neutral-200 p-3 font-bold text-neutral-600 whitespace-nowrap">Podolog / Gabinet / Lokalizacja</th>
+                            </tr>
                         </thead>
                         <tbody>
                             {items.map((m) => {
@@ -142,7 +149,9 @@ export default function History() {
                                     m.type === "IN" ? "Dostawa" :
                                         m.type === "SALE" ? "Sprzedaż" :
                                             m.type === "CLINIC" ? "Gabinet" :
-                                                "Korekta";
+                                                m.type === "TRANSFER_OUT" ? "Przesunięcie (wydane)" :
+                                                    m.type === "TRANSFER_IN" ? "Przesunięcie (przyjęte)" :
+                                                        "Korekta";
                                 return (
                                     <tr key={m.id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="border-b border-neutral-100 p-3 text-neutral-800 font-medium">{m.occurred_at.split("-").reverse().join("-")}</td>
@@ -150,6 +159,7 @@ export default function History() {
                                             <span className={`inline-flex px-2 py-1 rounded-md text-xs font-bold ${m.type === 'IN' ? 'bg-green-100 text-green-800' :
                                                 m.type === 'SALE' ? 'bg-blue-100 text-blue-800' :
                                                     m.type === 'CLINIC' ? 'bg-purple-100 text-purple-800' :
+                                                        m.type === 'TRANSFER_OUT' || m.type === 'TRANSFER_IN' ? 'bg-amber-100 text-amber-800' :
                                                         'bg-neutral-200 text-neutral-800'
                                                 }`}>
                                                 {typeLabel}
@@ -158,7 +168,10 @@ export default function History() {
                                         <td className="border-b border-neutral-100 p-3 text-neutral-900 font-bold">{p ? displayName(p) : m.product_id}</td>
                                         <td className="border-b border-neutral-100 p-3 text-neutral-800 font-black">{m.qty}</td>
                                         <td className="border-b border-neutral-100 p-3 text-neutral-600">{m.note ?? "-"}</td>
-                                        <td className="border-b border-neutral-100 p-3 text-neutral-800">{(m.type === "SALE" || m.type === "CLINIC") ? (m.podologist_name ?? "-") : "-"}</td>
+                                        <td className="border-b border-neutral-100 p-3 text-neutral-800">{(m.type === "SALE" || m.type === "CLINIC") ? (m.podologist_name ?? "-")
+                                            : m.type === "TRANSFER_OUT" ? `→ ${locationName(m.related_location_id)}`
+                                                : m.type === "TRANSFER_IN" ? `← ${locationName(m.related_location_id)}`
+                                                    : "-"}</td>
                                     </tr>
                                 );
                             })}

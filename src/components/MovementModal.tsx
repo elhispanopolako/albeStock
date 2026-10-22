@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { type MovementType, type Product, displayName } from "../state/db";
 import { todayYMD, isInCurrentMonth, startOfMonthYMD, isNotFutureYMD } from "../state/logic";
-import { useSupaDB } from "../state/SupabaseDBContext";
-
-// Definiujemy gabinety na potrzeby MVP:
-const ROOMS = ["Gabinet 1", "Gabinet 2"];
+import { useSupaDB, type MovementArgs } from "../state/SupabaseDBContext";
 
 type Props = {
     open: boolean;
@@ -12,11 +9,11 @@ type Props = {
     products: Product[];
     defaultProductId?: string;
     mode: "SALE" | "CLINIC" | "SUPPLY";
-    onSubmit: (args: { productId: string; type: MovementType; qty: number; note?: string; occurredAt: string, podologist?: string }) => Promise<void>;
+    onSubmit: (args: MovementArgs) => Promise<void>;
 };
 
 export default function MovementModal({ open, onClose, products, defaultProductId, mode, onSubmit }: Props) {
-    const { podologists } = useSupaDB();
+    const { podologists, rooms, locations, currentLocationId } = useSupaDB();
     const [productId, setProductId] = useState(defaultProductId ?? products[0]?.id ?? "");
     const [type, setType] = useState<MovementType>("SALE");
     const [qty, setQty] = useState<string>("");
@@ -27,12 +24,17 @@ export default function MovementModal({ open, onClose, products, defaultProductI
 
     // Wspólny stan dla wyboru Podologa lub Gabinetu
     const [target, setTarget] = useState<string>("");
+    const [toLocationId, setToLocationId] = useState<string>("");
+
+    const currentLocation = locations.find((l) => l.id === currentLocationId);
+    const otherLocations = locations.filter((l) => l.id !== currentLocationId);
 
     const selected = useMemo(() => products.find((p) => p.id === productId), [products, productId]);
 
     const showTypeSelect = mode === "SUPPLY";
     const isSale = type === "SALE";
     const isClinic = type === "CLINIC";
+    const isTransfer = type === "TRANSFER_OUT";
 
     // --- NOWA LOGIKA BIZNESOWA ---
     // Pokazujemy Podologa jeśli to Sprzedaż LUB jeśli to Zużycie, ale produkt NIE JEST materiałem gabinetowym
@@ -48,12 +50,13 @@ export default function MovementModal({ open, onClose, products, defaultProductI
         setNote("");
         setError(null);
         setTarget("");
+        setToLocationId("");
         setOccurredAt(todayYMD());
     }, [open, defaultProductId, products, mode]);
 
     if (!open) return null;
 
-    const title = type === "IN" ? "Dostawa" : type === "SALE" ? "Sprzedaż" : type === "CLINIC" ? "Zużycie" : "Korekta (ustaw stan)";
+    const title = type === "IN" ? "Dostawa" : type === "SALE" ? "Sprzedaż" : type === "CLINIC" ? "Zużycie" : isTransfer ? "Przesunięcie do innej lokalizacji" : "Korekta (ustaw stan)";
 
     const submit = async () => {
         if (saving) return;
@@ -68,13 +71,14 @@ export default function MovementModal({ open, onClose, products, defaultProductI
             return setError("Ilość musi być > 0.");
         }
 
-        if ((isSale || isClinic) && selected && selected.stock - qtyNumber < 0) {
+        if ((isSale || isClinic || isTransfer) && selected && selected.stock - qtyNumber < 0) {
             return setError("Brak wystarczającego stanu (nie można zejść poniżej zera).");
         }
 
         // Dynamiczna walidacja
         if (showPodologist && !target) return setError("Wybierz podologa.");
         if (showRoom && !target) return setError("Wybierz gabinet.");
+        if (isTransfer && !toLocationId) return setError("Wybierz lokalizację docelową.");
 
         if (type === "ADJUST" && note.trim().length < 3) {
             return setError("Podaj powód korekty (min. 3 znaki).");
@@ -91,7 +95,8 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                 qty: Math.floor(qtyNumber),
                 note: note.trim() ? note.trim() : undefined,
                 occurredAt,
-                ...((isSale || isClinic) ? { podologist: target } : {})
+                ...((isSale || isClinic) ? { podologist: target } : {}),
+                ...(isTransfer ? { toLocationId } : {}),
             });
             onClose();
         } catch (e: any) {
@@ -110,6 +115,7 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                         {selected ? (
                             <div className="text-neutral-500 mt-1 text-sm">
                                 {displayName(selected)} — stan: <b className="text-neutral-800">{selected.stock}</b> szt
+                                {currentLocation ? <> ({currentLocation.name})</> : null}
                             </div>
                         ) : null}
                     </div>
@@ -125,6 +131,19 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                             <select value={type} onChange={(e) => setType(e.target.value as MovementType)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                                 <option value="IN">Dostawa</option>
                                 <option value="ADJUST">Korekta (ustaw stan)</option>
+                                {otherLocations.length > 0 ? <option value="TRANSFER_OUT">Przesunięcie do innej lokalizacji</option> : null}
+                            </select>
+                        </label>
+                    ) : null}
+
+                    {isTransfer ? (
+                        <label className="grid gap-1.5">
+                            <span className="text-xs text-neutral-500 font-bold">Do lokalizacji</span>
+                            <select value={toLocationId} onChange={(e) => setToLocationId(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
+                                <option value="">Wybierz lokalizację</option>
+                                {otherLocations.map((l) => (
+                                    <option key={l.id} value={l.id}>{l.name}</option>
+                                ))}
                             </select>
                         </label>
                     ) : null}
@@ -148,8 +167,8 @@ export default function MovementModal({ open, onClose, products, defaultProductI
                             <span className="text-xs text-neutral-500 font-bold">Gabinet</span>
                             <select value={target} onChange={(e) => setTarget(e.target.value)} className="w-full px-3 py-2 border border-neutral-300 rounded-xl outline-none focus:border-blue-500 bg-white transition-colors">
                                 <option value="">Wybierz gabinet</option>
-                                {ROOMS.map((room) => (
-                                    <option key={room} value={room}>{room}</option>
+                                {rooms.map((room) => (
+                                    <option key={room.id} value={room.name}>{room.name}</option>
                                 ))}
                             </select>
                         </label>

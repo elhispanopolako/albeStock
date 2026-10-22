@@ -16,6 +16,7 @@ const items: Item[] = [
     { to: "/products", label: "Produkty", icon: <IconBox /> },
     { to: "/supplies", label: "Materiały", icon: <IconMedical /> },
     { to: "/history", label: "Historia", icon: <IconClock /> },
+    { to: "/locations", label: "Lokalizacje", icon: <IconPin /> },
 ];
 
 export default function Sidebar({ collapsed, onToggle }: Props) {
@@ -89,6 +90,14 @@ export default function Sidebar({ collapsed, onToggle }: Props) {
 }
 
 // --- minimalistyczne SVG ikony (bez bibliotek) ---
+function IconPin() {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" strokeWidth="2" />
+        </svg>
+    );
+}
 function IconHome() {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">

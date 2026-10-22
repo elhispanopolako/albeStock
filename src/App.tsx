@@ -7,6 +7,8 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import History from "./pages/History";
 import Supplies from "./pages/Supplies";
+import Locations from "./pages/Locations";
+import { useSupaDB } from "./state/SupabaseDBContext";
 
 const SIDEBAR_KEY = "mvp_sidebar_collapsed";
 
@@ -42,12 +44,15 @@ export default function App() {
       <main className="min-w-0 flex flex-col">
         <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
           <div className="font-black text-lg">Magazyn podologiczny</div>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="px-3 py-2 rounded-xl border border-neutral-300 bg-white font-extrabold shadow-sm hover:bg-neutral-100 transition-colors"
-          >
-            Wyloguj
-          </button>
+          <div className="flex items-center gap-3">
+            <LocationSwitcher />
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="px-3 py-2 rounded-xl border border-neutral-300 bg-white font-extrabold shadow-sm hover:bg-neutral-100 transition-colors"
+            >
+              Wyloguj
+            </button>
+          </div>
         </header>
 
         <div className="p-4 w-full max-w-6xl mx-auto">
@@ -56,9 +61,28 @@ export default function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/supplies" element={<Supplies />} />
             <Route path="/history" element={<History />} />
+            <Route path="/locations" element={<Locations />} />
           </Routes>
         </div>
       </main>
     </div>
+  );
+}
+
+function LocationSwitcher() {
+  const { locations, currentLocationId, setCurrentLocationId } = useSupaDB();
+  if (locations.length === 0) return null;
+
+  return (
+    <select
+      value={currentLocationId ?? ""}
+      onChange={(e) => setCurrentLocationId(e.target.value)}
+      title="Lokalizacja"
+      className="px-3 py-2 rounded-xl border border-neutral-300 bg-white font-bold outline-none focus:border-blue-500 transition-colors"
+    >
+      {locations.map((l) => (
+        <option key={l.id} value={l.id}>{l.name}</option>
+      ))}
+    </select>
   );
 }

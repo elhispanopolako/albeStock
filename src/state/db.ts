@@ -3,7 +3,7 @@
 export type Unit = "szt";
 
 export type Producer = "Podopharm" | "Epione" | "Podoland" | "Procarexpert" | "Brak";
-export type MovementType = "IN" | "SALE" | "CLINIC" | "ADJUST";
+export type MovementType = "IN" | "SALE" | "CLINIC" | "ADJUST" | "TRANSFER_OUT" | "TRANSFER_IN";
 export type ProductType =
     | "spray"
     | "krople"
@@ -25,11 +25,21 @@ export type Product = {
     product_type: ProductType;
     size: string | null;
     unit: string;
-    stock: number;
-    min_level: number;
+    stock: number; // stan w bieżącej lokalizacji (z product_stock)
+    min_level: number; // minimum w bieżącej lokalizacji (z product_stock)
     created_at: string;
     updated_at: string;
     is_clinic_only: boolean;
+};
+export type Location = {
+    id: string;
+    name: string;
+};
+export type Room = {
+    id: string;
+    location_id: string;
+    name: string;
+    active: boolean;
 };
 export type MonthlySnapshot = {
     month: string; // np. "2026-01"
@@ -45,6 +55,9 @@ export type MonthlySnapshot = {
 export type StockMovement = {
     id: string;
     product_id: string;
+    location_id: string;
+    related_location_id: string | null; // druga strona przesunięcia
+    transfer_id: string | null;
     type: MovementType;
     qty: number;
     podologist_name: string | null;
