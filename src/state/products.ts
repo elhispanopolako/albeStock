@@ -26,6 +26,7 @@ export function addProduct(
         created_at: nowISO(),
         updated_at: nowISO(),
         is_clinic_only: input.isClinicOnly ?? false,
+        active: true,
     };
 
 

@@ -8,14 +8,14 @@ import Products from "./pages/Products";
 import History from "./pages/History";
 import Supplies from "./pages/Supplies";
 import Locations from "./pages/Locations";
-import DeliveryModal from "./components/DeliveryModal";
+import BatchMovementModal, { type BatchKind } from "./components/BatchMovementModal";
 import { useSupaDB } from "./state/SupabaseDBContext";
 
 const SIDEBAR_KEY = "mvp_sidebar_collapsed";
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
-  const [deliveryOpen, setDeliveryOpen] = useState(false);
+  const [batchKind, setBatchKind] = useState<BatchKind | null>(null);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       const raw = localStorage.getItem(SIDEBAR_KEY);
@@ -44,14 +44,20 @@ export default function App() {
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
 
       <main className="min-w-0 flex flex-col">
-        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
+        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="font-black text-lg">Magazyn podologiczny</div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
-              onClick={() => setDeliveryOpen(true)}
+              onClick={() => setBatchKind("DELIVERY")}
               className="px-3 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold shadow-sm hover:bg-black transition-colors"
             >
               Przyjmij dostawę
+            </button>
+            <button
+              onClick={() => setBatchKind("USAGE")}
+              className="px-3 py-2 rounded-xl border border-neutral-900 bg-white text-neutral-900 font-extrabold shadow-sm hover:bg-neutral-100 transition-colors"
+            >
+              Zużycie
             </button>
             <LocationSwitcher />
             <button
@@ -74,7 +80,7 @@ export default function App() {
         </div>
       </main>
 
-      <DeliveryModal open={deliveryOpen} onClose={() => setDeliveryOpen(false)} />
+      <BatchMovementModal open={batchKind !== null} kind={batchKind ?? "DELIVERY"} onClose={() => setBatchKind(null)} />
     </div>
   );
 }

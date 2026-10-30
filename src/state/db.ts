@@ -30,6 +30,7 @@ export type Product = {
     created_at: string;
     updated_at: string;
     is_clinic_only: boolean;
+    active: boolean; // false = produkt usunięty (zostaje tylko dla historii)
 };
 export type Location = {
     id: string;

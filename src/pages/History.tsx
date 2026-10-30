@@ -4,7 +4,7 @@ import { displayName, endOfTodayYMD, startOfPrevMonthYMD, endOfPrevMonthYMD, mon
 import { type PeriodFilter, type TypeFilter, type StockMovement } from "../state/db";
 
 export default function History() {
-    const { products, podologists, fetchMovements, locations, allRooms, currentLocationId } = useSupaDB();
+    const { allProducts, podologists, fetchMovements, locations, allRooms, currentLocationId } = useSupaDB();
     // w filtrze także nieaktywne gabinety, żeby dało się przejrzeć ich historię
     const locationRooms = allRooms.filter((r) => r.location_id === currentLocationId);
     const locationName = (id: string | null) => locations.find((l) => l.id === id)?.name ?? "?";
@@ -144,7 +144,7 @@ export default function History() {
                         </thead>
                         <tbody>
                             {items.map((m) => {
-                                const p = products.find((x) => x.id === m.product_id);
+                                const p = allProducts.find((x) => x.id === m.product_id);
                                 const typeLabel =
                                     m.type === "IN" ? "Dostawa" :
                                         m.type === "SALE" ? "Sprzedaż" :

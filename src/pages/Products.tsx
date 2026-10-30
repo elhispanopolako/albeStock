@@ -6,7 +6,7 @@ import AddProductModal from "../components/AddProductModal";
 import EditProductModal from "../components/EditProductModal";
 
 export default function Products() {
-    const { products, applyMovement, addProduct, editProduct } = useSupaDB();
+    const { products, applyMovement, addProduct, editProduct, deleteProduct } = useSupaDB();
     const [q, setQ] = useState("");
     const [producer, setProducer] = useState<Producer | "ALL">("ALL");
     const [ptype, setPtype] = useState<ProductType | "ALL">("ALL");
@@ -185,6 +185,7 @@ export default function Products() {
                 onClose={() => setEditOpen(false)}
                 product={editProductItem}
                 onSubmit={(args) => editProduct(args)}
+                onDelete={(id) => deleteProduct(id)}
             />
         </section>
     );

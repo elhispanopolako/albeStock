@@ -41,9 +41,18 @@ export type DeliveryArgs = {
     items: { productId: string; qty: number }[];
 };
 
+export type UsageArgs = {
+    occurredAt: string; // YYYY-MM-DD
+    note?: string;
+    // target: podolog dla produktów, gabinet dla materiałów
+    items: { productId: string; qty: number; target: string }[];
+};
+
 type Ctx = {
-    // produkty ze stanem i minimum dla bieżącej lokalizacji
+    // aktywne produkty ze stanem i minimum dla bieżącej lokalizacji
     products: Product[];
+    // wszystkie produkty, także usunięte - do wyświetlania nazw w historii
+    allProducts: Product[];
     podologists: PodologistRow[];
     // snapshoty bieżącej lokalizacji
     snapshots: SnapshotRow[];
@@ -65,6 +74,7 @@ type Ctx = {
 
     applyMovement: (args: MovementArgs) => Promise<void>;
     applyDelivery: (args: DeliveryArgs) => Promise<void>;
+    applyUsage: (args: UsageArgs) => Promise<void>;
 
     addProduct: (args: {
         producer: Producer;
@@ -85,6 +95,7 @@ type Ctx = {
         minLevel: number;
         isClinicOnly?: boolean;
     }) => Promise<void>;
+    deleteProduct: (id: string) => Promise<void>;
 
     addLocation: (name: string) => Promise<void>;
     renameLocation: (id: string, name: string) => Promise<void>;
@@ -173,7 +184,7 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
         return () => sub.subscription.unsubscribe();
     }, []);
 
-    const products = useMemo(() => {
+    const allProducts = useMemo(() => {
         const byProduct = new Map(
             stockRows.filter((r) => r.location_id === currentLocationId).map((r) => [r.product_id, r])
         );
@@ -184,6 +195,8 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
             min_level: byProduct.get(p.id)?.min_level ?? 0,
         }));
     }, [catalog, stockRows, currentLocationId]);
+
+    const products = useMemo(() => allProducts.filter((p) => p.active), [allProducts]);
 
     const snapshots = useMemo(
         () => allSnapshots.filter((s) => s.location_id === currentLocationId),
@@ -264,6 +277,17 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
         await refreshAll();
     };
 
+    const applyUsage = async (args: UsageArgs) => {
+        const { error } = await supabase.rpc("apply_usage", {
+            p_location_id: requireLocation(),
+            p_occurred_at: args.occurredAt,
+            p_items: args.items.map((i) => ({ product_id: i.productId, qty: i.qty, target: i.target })),
+            p_note: args.note ?? null,
+        });
+        if (error) throw error;
+        await refreshAll();
+    };
+
     const addProduct = async (args: {
         producer: Producer;
         name: string;
@@ -321,6 +345,12 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
         await refreshAll();
     };
 
+    const deleteProduct = async (id: string) => {
+        const { error } = await supabase.from("products").update({ active: false }).eq("id", id);
+        if (error) throw error;
+        await refreshAll();
+    };
+
     const addLocation = async (name: string) => {
         const { error } = await supabase.from("locations").insert({ name: name.trim() });
         if (error) throw error;
@@ -353,13 +383,13 @@ export function SupabaseDBProvider({ children }: { children: React.ReactNode }) 
 
     const value = useMemo(
         () => ({
-            products, podologists, snapshots, locations, allRooms, rooms, currentLocationId, setCurrentLocationId,
-            refreshAll, fetchMovements, applyMovement, applyDelivery, addProduct, editProduct,
+            products, allProducts, podologists, snapshots, locations, allRooms, rooms, currentLocationId, setCurrentLocationId,
+            refreshAll, fetchMovements, applyMovement, applyDelivery, applyUsage, addProduct, editProduct, deleteProduct,
             addLocation, renameLocation, addRoom, renameRoom, setRoomActive,
         }),
         // funkcje zależą tylko od currentLocationId i setterów stanu
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [products, podologists, snapshots, locations, allRooms, rooms, currentLocationId]
+        [products, allProducts, podologists, snapshots, locations, allRooms, rooms, currentLocationId]
     );
 
     return <SupaCtx.Provider value={value}>{children}</SupaCtx.Provider>;

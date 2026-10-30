@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Producer, Product, ProductType } from "../state/db";
+import { type Producer, type Product, type ProductType, displayName } from "../state/db";
 
 type Props = {
     open: boolean;
@@ -14,9 +14,10 @@ type Props = {
         minLevel: number;
         isClinicOnly?: boolean;
     }) => Promise<void>;
+    onDelete: (id: string) => Promise<void>;
 };
 
-export default function EditProductModal({ open, onClose, product, onSubmit }: Props) {
+export default function EditProductModal({ open, onClose, product, onSubmit, onDelete }: Props) {
     const [producer, setProducer] = useState<Producer>("Podopharm");
     const [name, setName] = useState("");
     const [productType, setProductType] = useState<ProductType>("inne");
@@ -24,6 +25,8 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
     const [minLevel, setMinLevel] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    // drugi krok usuwania - żeby nie skasować produktu jednym przypadkowym kliknięciem
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const isClinicOnly = product?.is_clinic_only ?? false
     useEffect(() => {
         if (!open || !product) return;
@@ -33,6 +36,7 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
         setSize(product.size ?? "");
         setMinLevel(String(product.min_level));
         setError(null);
+        setConfirmDelete(false);
     }, [open, product]);
 
     if (!open || !product) return null;
@@ -58,6 +62,20 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
             onClose();
         } catch (e: any) {
             setError(e?.message ?? "Nie udało się zapisać.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const remove = async () => {
+        if (saving) return;
+        setError(null);
+        setSaving(true);
+        try {
+            await onDelete(product.id);
+            onClose();
+        } catch (e) {
+            setError((e as { message?: string } | null)?.message ?? "Nie udało się usunąć.");
         } finally {
             setSaving(false);
         }
@@ -119,11 +137,36 @@ export default function EditProductModal({ open, onClose, product, onSubmit }: P
 
                     {error ? <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-sm">{error}</div> : null}
 
+                    {confirmDelete ? (
+                        <div className="p-3 rounded-xl bg-red-50 border border-red-200 grid gap-3">
+                            <div className="text-sm text-red-900">
+                                Czy na pewno usunąć <b>{displayName(product)}</b>?
+                                {product.stock > 0 ? <> W bieżącej lokalizacji na stanie jest jeszcze <b>{product.stock} szt.</b></> : null}
+                                <div className="mt-1 text-red-800/80">Produkt zniknie z list we wszystkich lokalizacjach. Historia ruchów zostanie zachowana.</div>
+                            </div>
+                            <div className="flex justify-end gap-2.5">
+                                <button onClick={() => setConfirmDelete(false)} disabled={saving} className="px-4 py-2 rounded-xl border border-neutral-300 bg-white text-neutral-900 font-extrabold hover:bg-neutral-100 transition-colors disabled:opacity-50">
+                                    Nie, wróć
+                                </button>
+                                <button onClick={remove} disabled={saving} className="px-4 py-2 rounded-xl border border-red-700 bg-red-600 text-white font-extrabold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    {saving ? "Usuwanie…" : "Tak, usuń produkt"}
+                                </button>
+                            </div>
+                        </div>
+                    ) : null}
+
                     <div className="flex justify-end gap-2.5 mt-2">
+                        <button
+                            onClick={() => setConfirmDelete(true)}
+                            disabled={saving || confirmDelete}
+                            className="mr-auto px-4 py-2 rounded-xl border border-red-200 bg-white text-red-700 font-extrabold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Usuń produkt
+                        </button>
                         <button onClick={onClose} className="px-4 py-2 rounded-xl border border-neutral-300 bg-neutral-100 text-neutral-900 font-extrabold hover:bg-neutral-200 transition-colors">
                             Anuluj
                         </button>
-                        <button onClick={submit} disabled={saving} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button onClick={submit} disabled={saving || confirmDelete} className="px-4 py-2 rounded-xl border border-neutral-900 bg-neutral-900 text-white font-extrabold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             {saving ? "Zapisywanie…" : "Zapisz"}
                         </button>
                     </div>
